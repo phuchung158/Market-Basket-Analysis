@@ -42,8 +42,8 @@ if page == "Trang 1: Giới thiệu & EDA":
     with st.container(border=True):
         st.subheader("📝 Thông tin thực hiện")
         st.write("**Tên đề tài:** Phân tích hành vi mua sắm khách hàng và gợi ý sản phẩm dựa trên thuật toán Apriori & FP-Growth")
-        st.write("**Họ tên SV:** [Tên của bạn]")
-        st.write("**MSSV:** [MSSV của bạn]")
+        st.write("**Họ tên SV:** Hà Thúc Phúc Hưng")
+        st.write("**MSSV:** 22T1020618")
         
     # 2. Giá trị thực tiễn
     st.subheader("💡 Giá trị thực tiễn")
@@ -127,48 +127,53 @@ elif page == "Trang 2: Triển khai dự báo":
             st.error("Không tìm thấy quy luật nào. Hãy giảm ngưỡng Support hoặc Confidence!")
 
 # --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
-elif page == "Trang 3: Đánh giá hiệu năng":
+# --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
+elif page == "Trang 3: Đánh giá & Hiệu năng":
     st.title("📊 Đánh giá & So sánh mô hình")
 
-    # 1. Đo lường hiệu năng thời gian
-    te = TransactionEncoder()
-    te_ary = te.fit(transactions).transform(transactions)
-    df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
+    try:
+        # 1. Đo lường hiệu năng thời gian
+        # Dùng một mẫu nhỏ hoặc cache để tránh treo máy
+        te = TransactionEncoder()
+        te_ary = te.fit(transactions).transform(transactions)
+        df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
 
-    t1 = time.time()
-    apriori(df_encoded, min_support=0.001, use_colnames=True)
-    time_apriori = time.time() - t1
+        with st.spinner('Đang tính toán so sánh hiệu năng...'):
+            t1 = time.time()
+            apriori(df_encoded, min_support=0.002, use_colnames=True) # Tăng support lên cho nhanh
+            time_apriori = time.time() - t1
 
-    t2 = time.time()
-    fpgrowth(df_encoded, min_support=0.001, use_colnames=True)
-    time_fpgrowth = time.time() - t2
+            t2 = time.time()
+            fpgrowth(df_encoded, min_support=0.002, use_colnames=True)
+            time_fpgrowth = time.time() - t2
 
-    # Hiển thị chỉ số
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Thời gian chạy Apriori", f"{time_apriori:.4f}s")
-    with col2:
-        st.metric("Thời gian chạy FP-Growth", f"{time_fpgrowth:.4f}s")
+        # Hiển thị chỉ số
+        st.subheader("1. Tốc độ xử lý (Vấn đề tối ưu)")
+        col1, col2 = st.columns(2)
+        col1.metric("Thời gian chạy Apriori", f"{time_apriori:.4f}s")
+        col2.metric("Thời gian chạy FP-Growth", f"{time_fpgrowth:.4f}s")
+        st.info("💡 Nhận xét: FP-Growth thường nhanh hơn khi dữ liệu lớn nhờ cấu trúc cây nén dữ liệu.")
 
-    # 2. Biểu đồ kỹ thuật
-    st.subheader("📈 Phân tích quy luật tìm được")
-    # Lấy lại rules để vẽ biểu đồ
-    freq = fpgrowth(df_encoded, min_support=0.001, use_colnames=True)
-    rules_eval = association_rules(freq, metric="lift", min_threshold=1)
-    
-    fig3, ax3 = plt.subplots(figsize=(10, 4))
-    plt.scatter(rules_eval['support'], rules_eval['confidence'], c=rules_eval['lift'], cmap='YlOrRd')
-    plt.colorbar(label='Chỉ số Lift')
-    plt.xlabel('Support')
-    plt.ylabel('Confidence')
-    plt.title('Mối liên quan giữa các chỉ số đo lường')
-    st.pyplot(fig3)
+        # 2. Biểu đồ kỹ thuật
+        st.subheader("2. Phân tích các chỉ số đo lường")
+        # Lấy lại rules để vẽ biểu đồ
+        freq = fpgrowth(df_encoded, min_support=0.001, use_colnames=True)
+        rules_eval = association_rules(freq, metric="lift", min_threshold=1)
+        
+        if not rules_eval.empty:
+            fig3, ax3 = plt.subplots(figsize=(10, 5))
+            scatter = ax3.scatter(rules_eval['support'], rules_eval['confidence'], c=rules_eval['lift'], cmap='YlOrRd')
+            plt.colorbar(scatter, label='Chỉ số Lift')
+            ax3.set_xlabel('Độ hỗ trợ (Support)')
+            ax3.set_ylabel('Độ tin cậy (Confidence)')
+            st.pyplot(fig3)
+        else:
+            st.warning("Không đủ dữ liệu luật để vẽ biểu đồ.")
 
-    # 3. Phân tích sai số
-    st.subheader("⚠️ Phân tích sai số & Hướng cải thiện")
-    st.markdown("""
-    - **Điểm yếu:** Mô hình thường gợi ý các mặt hàng "đại trà" (sữa, rau củ) do tần suất xuất hiện quá cao trong dữ liệu, làm mờ đi các quy luật đặc thù.
-    - **Sai số:** Một số sản phẩm hiếm (ngách) sẽ không bao giờ được gợi ý nếu đặt ngưỡng Support cứng nhắc.
-    - **Hướng cải thiện:** 1. Áp dụng thuật toán **FP-Growth** thay vì Apriori để tăng tốc độ khi dữ liệu lớn.
-        2. Sử dụng thêm các yếu tố cá nhân hóa (theo Member_number) thay vì chỉ dựa vào giỏ hàng chung.
-    """)
+        # 3. Phân tích sai số
+        st.subheader("3. Phân tích & Hướng cải thiện")
+        st.write("- **Hạn chế:** Thuật toán nhạy cảm với các mặt hàng phổ biến, dễ tạo ra các luật 'hiển nhiên'.")
+        st.write("- **Cải thiện:** Cần áp dụng thêm lọc luật theo giá trị kinh doanh (Profit) thay vì chỉ dựa vào tần suất.")
+
+    except Exception as e:
+        st.error(f"Đã xảy ra lỗi khi tải Trang 3: {e}")
