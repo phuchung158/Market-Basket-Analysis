@@ -34,7 +34,7 @@ if page == "Trang 1: Giới thiệu & EDA":
     # Thông tin SV
     with st.expander("ℹ️ Thông tin sinh viên thực hiện", expanded=True):
         st.write("**Họ tên SV:** Hà Thúc Phúc Hưng")
-        st.write("**MSSV:** 22T1020618]")
+        st.write("**MSSV:** 22T1020618")
         st.write("**Đề tài:** Tối ưu hóa Giỏ hàng với Thuật toán Apriori.")
 
     st.subheader("1. Giá trị thực tiễn")
