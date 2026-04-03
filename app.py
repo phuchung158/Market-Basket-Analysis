@@ -93,20 +93,26 @@ elif page == "Trang 2: Triển khai mô hình":
     user_input = st.selectbox("Chọn sản phẩm khách hàng vừa bỏ vào giỏ:", all_items)
 
     if st.button("Dự đoán sản phẩm mua kèm"):
-        # Tìm luật liên quan
-        res = rules[rules['antecedents'].apply(lambda x: user_input in x)].sort_values(by='lift', ascending=False)
-        
-        if not res.empty:
-            suggested = list(res.iloc[0]['consequents'])[0]
-            conf = res.iloc[0]['confidence']
-            lift = res.iloc[0]['lift']
+        # 1. Kiểm tra xem bảng rules có dữ liệu không
+        if not rules.empty:
+            # 2. Tìm luật liên quan đến sản phẩm người dùng chọn
+            res = rules[rules['antecedents'].apply(lambda x: user_input in x)]
             
-            st.success(f"✅ Kết quả dự báo: Khách hàng khả năng cao sẽ mua thêm **{suggested}**")
-            st.metric(label="Độ tin cậy (Confidence)", value=f"{conf*100:.2f}%")
-            st.metric(label="Chỉ số Lift (Độ cải thiện)", value=f"{lift:.2f}")
+            if not res.empty:
+                # 3. Chỉ sắp xếp khi kết quả lọc không rỗng
+                res = res.sort_values(by='lift', ascending=False)
+                
+                suggested = list(res.iloc[0]['consequents'])[0]
+                conf = res.iloc[0]['confidence']
+                lift = res.iloc[0]['lift']
+                
+                st.success(f"✅ Kết quả dự báo: Khách hàng khả năng cao sẽ mua thêm **{suggested}**")
+                st.metric(label="Độ tin cậy (Confidence)", value=f"{conf*100:.2f}%")
+                st.metric(label="Chỉ số Lift (Độ cải thiện)", value=f"{lift:.2f}")
+            else:
+                st.warning(f"Sản phẩm '{user_input}' hiện không nằm trong quy luật nào với ngưỡng hiện tại. Hãy thử giảm Ngưỡng tin cậy.")
         else:
-            st.warning("Chưa tìm thấy luật kết hợp phù hợp cho sản phẩm này với ngưỡng hiện tại.")
-
+            st.error("❌ Không tìm thấy luật kết hợp nào! Vui lòng giảm 'Ngưỡng tin cậy' hoặc 'Ngưỡng hỗ trợ' ở bên trái.")
 # ---------------------------------------------------------
 # TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG
 # ---------------------------------------------------------
