@@ -208,7 +208,7 @@ elif page == "Trang 3: Đánh giá & Hiệu năng":
     st.subheader("1. Các chỉ số đo lường chất lượng luật")
     
     try:
-        with open('models/trained_model.pkl', 'rb') as f:
+        with open('models/file.pkl', 'rb') as f:
             rules_eval = pickle.load(f)
         
         c1, c2, c3 = st.columns(3)
