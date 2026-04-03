@@ -49,46 +49,50 @@ if page == "Trang 1: Giới thiệu & EDA":
     # 2. Giá trị thực tiễn
     st.subheader("💡 Giá trị thực tiễn")
     st.info("""Giải pháp này giúp các nhà quản lý bán lẻ hiểu rõ mối liên kết giữa các sản phẩm. 
-    Từ đó tối ưu hóa việc sắp xếp kệ hàng (đặt các món hay mua cùng nhau gần nhau) và thiết kế 
-    các chương trình khuyến mãi Combo hiệu quả để tăng doanh thu.""")
+    Từ đó tối ưu hóa việc sắp xếp kệ hàng và thiết kế các chương trình khuyến mãi Combo hiệu quả.""")
 
-    # --- PHẦN BỔ SUNG: CÁC CHỈ SỐ TỔNG QUAN ---
+    # --- CÁC CHỈ SỐ TỔNG QUAN ---
     st.subheader("📊 Tổng quan bộ dữ liệu")
     m1, m2, m3 = st.columns(3)
     m1.metric("Tổng số dòng dữ liệu", f"{len(df):,}")
     m2.metric("Số lượng sản phẩm", f"{df['itemDescription'].nunique()}")
     m3.metric("Số lượng giao dịch", f"{len(transactions):,}")
 
-    # 3. Hiển thị dữ liệu thô
+    # 3. Hiển thị dữ liệu thô (CHỈ 10 DÒNG THEO YÊU CẦU)
     st.subheader("🔍 1. Khám phá dữ liệu thô")
-    st.write("Dữ liệu giao dịch mẫu (Lướt để xem chi tiết):")
-    st.dataframe(df.head(100), use_container_width=True, height=300)
+    st.write("Mẫu 10 dòng giao dịch đầu tiên trong tập dữ liệu:")
+    st.dataframe(df.head(10), use_container_width=True) # Đã chỉnh về 10 dòng
 
-    # --- PHẦN BỔ SUNG: BẢNG LƯỚT LÊN XUỐNG THỐNG KÊ SẢN PHẨM ---
-    st.subheader("📦 2. Danh mục sản phẩm & Số lượng bán")
-    st.write("Bảng thống kê chi tiết tần suất xuất hiện của từng sản phẩm (Lướt để xem toàn bộ):")
+    # 4. BẢNG THỐNG KÊ SẢN PHẨM (CÓ TÌNH NĂNG TÌM KIẾM)
+    st.subheader("📦 2. Danh mục sản phẩm & Tra cứu số lượng")
+    st.write("Sử dụng biểu tượng 🔍 ở góc trên bên phải bảng để tìm kiếm nhanh tên sản phẩm:")
     
     # Tính toán bảng thống kê
     product_stats = df['itemDescription'].value_counts().reset_index()
     product_stats.columns = ['Tên sản phẩm', 'Số lượng đã bán']
     
-    # Hiển thị bảng có thanh cuộn (height=400 tạo ra thanh cuộn dọc)
+    # Hiển thị bảng có thanh cuộn và tích hợp tìm kiếm mặc định của Streamlit
     st.dataframe(
         product_stats, 
         use_container_width=True, 
         height=400, 
-        hide_index=True
+        hide_index=True,
+        # Kích hoạt tính năng tìm kiếm và lọc trên các cột
+        column_config={
+            "Tên sản phẩm": st.column_config.TextColumn("Tên sản phẩm", help="Gõ để tìm kiếm..."),
+            "Số lượng đã bán": st.column_config.NumberColumn("Số lượng đã bán", format="%d 🛒")
+        }
     )
-    st.caption("💡 Bạn có thể nhấn vào tên cột để sắp xếp sản phẩm theo số lượng.")
+    st.caption("✨ Mẹo: Di chuột vào bảng, nhấn nút kính lúp ở góc phải để tìm sản phẩm cụ thể.")
 
-    # 4. Biểu đồ phân tích
-    st.subheader("📈 3. Biểu đồ phân tích trực quan")
+    # 5. Biểu đồ phân tích trực quan
+    st.subheader("📈 3. Biểu đồ phân tích")
     col1, col2 = st.columns(2)
     with col1:
-        st.write("**Top 10 sản phẩm xuất hiện nhiều nhất**")
-        top_items = df['itemDescription'].value_counts().head(10)
+        st.write("**Top 10 sản phẩm bán chạy nhất**")
+        top_items = product_stats.head(10)
         fig, ax = plt.subplots()
-        sns.barplot(x=top_items.values, y=top_items.index, palette='viridis', ax=ax)
+        sns.barplot(x='Số lượng đã bán', y='Tên sản phẩm', data=top_items, palette='viridis', ax=ax)
         st.pyplot(fig)
 
     with col2:
@@ -96,16 +100,15 @@ if page == "Trang 1: Giới thiệu & EDA":
         basket_sizes = [len(t) for t in transactions]
         fig2, ax2 = plt.subplots()
         sns.histplot(basket_sizes, bins=10, kde=True, color='orange', ax=ax2)
-        ax2.set_xlabel("Số sản phẩm trong 1 giỏ hàng")
+        ax2.set_xlabel("Số sản phẩm / Giỏ hàng")
         st.pyplot(fig2)
 
-    # 5. Giải thích dữ liệu
+    # 6. Giải thích dữ liệu
     st.markdown("""
-    **Nhận xét về dữ liệu:**
-    - **Quy mô:** Dữ liệu có hơn **38,000 dòng** ghi nhận giao dịch của khách hàng.
-    - **Đặc trưng:** Có 3 cột chính (`Member_number`, `Date`, `itemDescription`). Trong đó `itemDescription` là đặc trưng quan trọng nhất để khai phá quy luật.
-    - **Độ lệch:** Dữ liệu bị lệch về phía các mặt hàng thiết yếu như **Sữa (Whole milk)** và **Rau củ (Other vegetables)**. 
-    - **Hành vi:** Đa số các giỏ hàng chỉ có từ **2-5 sản phẩm**, điều này cho thấy khách hàng thường mua lẻ tẻ, đòi hỏi thuật toán phải có ngưỡng hỗ trợ thấp để tìm ra sự liên kết.
+    ---
+    **Nhận xét nhanh:**
+    - Dữ liệu tập trung mạnh vào các nhóm nhu yếu phẩm.
+    - Phần lớn giao dịch có quy mô nhỏ (2-5 món), cho thấy đây là dữ liệu từ siêu thị tiện lợi hoặc cửa hàng tạp hóa.
     """)
 
 # --- TRANG 2: TRIỂN KHAI MÔ HÌNH ---
