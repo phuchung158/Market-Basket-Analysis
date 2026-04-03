@@ -89,7 +89,7 @@ elif page == "Trang 2: Triển khai dự báo":
     # 1. XỬ LÝ LOGIC: LOAD MÔ HÌNH ĐÃ HUẤN LUYỆN
     # Đảm bảo bạn đã có thư mục models/ và file trained_model.pkl trong đó
     try:
-        with open('models/trained_model.pkl', 'rb') as f:
+        with open('models/file.pkl', 'rb') as f:
             model_rules = pickle.load(f)
         st.sidebar.success("✅ Đã kết nối với mô hình thành công!")
     except FileNotFoundError:
