@@ -122,45 +122,41 @@ elif page == "Trang 2: Triển khai dự báo":
     st.markdown("### 🚀 Kết quả phân tích hành vi")
     
     if st.button("Thực hiện dự báo ngay"):
-        with st.spinner('Mô hình đang tính toán quy luật...'):
-            # Giả lập thời gian xử lý để giao diện chuyên nghiệp hơn
-            time.sleep(0.5) 
-            
-            # Logic tiền xử lý input: Lọc các luật từ file .pkl khớp với sản phẩm đã chọn
-            # và thỏa mãn ngưỡng tin cậy người dùng thiết lập
-            results = model_rules[
-                (model_rules['antecedents'].apply(lambda x: selected_item in x)) & 
-                (model_rules['confidence'] >= conf_threshold)
-            ].sort_values(by='lift', ascending=False).head(num_rec)
+        with st.spinner('Mô hình đang tính toán...'):
+            # 1. Lọc luật dựa trên sản phẩm đã chọn
+            res = model_rules[model_rules['antecedents'].apply(lambda x: selected_item in x)]
+            res = res[res['confidence'] >= conf_threshold]
 
-            # 4. HIỂN THỊ KẾT QUẢ DỰ BÁO RÕ RÀNG
+            # 2. TIỀN XỬ LÝ: Loại bỏ các gợi ý trùng tên sản phẩm (Chỉ giữ lại cái tốt nhất)
+            # Chúng ta sẽ biến đổi cột consequents từ frozenset sang string để dễ lọc
+            res['suggested_name'] = res['consequents'].apply(lambda x: list(x)[0])
+            res = res.sort_values(by='lift', ascending=False).drop_duplicates(subset=['suggested_name'])
+            
+            # Lấy số lượng theo yêu cầu của người dùng
+            results = res.head(num_rec)
+
             if not results.empty:
-                st.write(f"Dựa trên lịch sử mua sắm, hệ thống đề xuất cho **{customer_name}**:")
+                st.write(f"Hệ thống đề xuất cho **{customer_name}**:")
                 
-                # Duyệt qua các kết quả để hiển thị từng thẻ (Card)
+                # 3. HIỂN THỊ (Sử dụng đúng biến index i)
                 for i in range(len(results)):
-                    suggested_item = list(results.iloc[i]['consequents'])[0]
-                    confidence_val = results.iloc[i]['confidence']
-                    lift_val = results.iloc[i]['lift']
+                    # Lấy dữ liệu của hàng hiện tại trong vòng lặp
+                    current_row = results.iloc[i]
+                    suggested_item = current_row['suggested_name']
+                    confidence_val = current_row['confidence']
+                    lift_val = current_row['lift']
                     
                     with st.expander(f"🌟 Gợi ý {i+1}: {suggested_item}", expanded=True):
-                        c1, c2 = st.columns(2)
-                        
-                        # Hiển thị kết quả rõ ràng (Ví dụ: "Đây là sản phẩm phù hợp")
-                        c1.write(f"📦 Sản phẩm: **{suggested_item}**")
-                        
-                        # Hiển thị độ tin cậy/xác suất dưới dạng Metric và Progress Bar
-                        c2.metric("Độ tin cậy (Confidence)", f"{confidence_val:.2%}")
-                        st.write(f"Độ liên quan (Lift): {lift_val:.2f}")
-                        st.progress(confidence_val)
-                
-                st.success("Dự báo hoàn tất! Hãy sắp xếp các sản phẩm này cạnh nhau trên kệ hàng.")
-                st.balloons() # Hiệu ứng trang trí khi dự báo thành công
+                        col_result_1, col_result_2 = st.columns(2)
+                        with col_result_1:
+                            st.write(f"📦 Sản phẩm: **{suggested_item}**")
+                            st.write(f"🔗 Độ liên quan (Lift): {lift_val:.2f}")
+                        with col_result_2:
+                            st.metric("Độ tin cậy", f"{confidence_val:.2%}")
+                            st.progress(confidence_val)
+                st.balloons()
             else:
-                # Thông báo rõ ràng khi không có kết quả
-                st.warning(f"Sản phẩm '{selected_item}' chưa có quy luật mua kèm nào thỏa mãn độ tin cậy {conf_threshold*100:.0f}%.")
-                st.info("💡 Hướng dẫn: Bạn hãy thử giảm 'Ngưỡng tin cậy' ở phía trên để tìm thấy nhiều gợi ý hơn.")
-
+                st.warning("Không tìm thấy gợi ý phù hợp.")
 # --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
 # --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
 elif page == "Trang 3: Đánh giá & Hiệu năng":
