@@ -37,14 +37,14 @@ page = st.sidebar.radio("Chọn trang hiển thị:",
 
 # --- TRANG 1: GIỚI THIỆU & KHÁM PHÁ DỮ LIỆU (EDA) ---
 if page == "Trang 1: Giới thiệu & EDA":
-    st.title("🛒 Phân tích hành vi mua sắm khách hàng và gợi ý sản phẩm")
+    st.title("🛒 Market Basket Analysis")
     
     # 1. Thông tin bắt buộc
     with st.container(border=True):
         st.subheader("📝 Thông tin thực hiện")
         st.write("**Tên đề tài:** Phân tích hành vi mua sắm khách hàng và gợi ý sản phẩm dựa trên thuật toán Apriori & FP-Growth")
         st.write("**Họ tên SV:** Hà Thúc Phúc Hưng")
-        st.write("**MSSV:** 22T1020618")
+        st.write("**MSV:** 22T1020618")
         
     # 2. Giá trị thực tiễn
     st.subheader("💡 Giá trị thực tiễn")
