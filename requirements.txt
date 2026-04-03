@@ -3,4 +3,4 @@ pandas
 mlxtend
 matplotlib
 seaborn
-pickle
+
