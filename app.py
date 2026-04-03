@@ -56,7 +56,7 @@ if page == "Trang 1: Giới thiệu & EDA":
     with col2:
         st.write("**Tần suất mua sắm theo tháng**")
         df['Date'] = pd.to_datetime(df['Date'])
-        monthly_counts = df.resample('M', on='Date').size()
+        monthly_counts = df.resample('ME', on='Date').size()
         fig2, ax2 = plt.subplots()
         monthly_counts.plot(kind='line', marker='o', ax=ax2, color='orange')
         st.pyplot(fig2)
