@@ -33,9 +33,9 @@ if page == "Trang 1: Giới thiệu & EDA":
     
     # Thông tin SV
     with st.expander("ℹ️ Thông tin sinh viên thực hiện", expanded=True):
-        st.write("**Họ tên SV:** [Tên của bạn]")
-        st.write("**MSSV:** [Mã số sinh viên của bạn]")
-        st.write("**Đề tài:** Ứng dụng thuật toán Apriori tối ưu hóa gợi ý sản phẩm siêu thị.")
+        st.write("**Họ tên SV:** Hà Thúc Phúc Hưng")
+        st.write("**MSSV:** 22T1020618]")
+        st.write("**Đề tài:** Tối ưu hóa Giỏ hàng với Thuật toán Apriori.")
 
     st.subheader("1. Giá trị thực tiễn")
     st.info("Bài toán giúp doanh nghiệp hiểu thói quen mua sắm 'kèm theo' của khách hàng. Từ đó tối ưu việc sắp xếp kệ hàng, thiết kế các gói Combo khuyến mãi và xây dựng hệ thống gợi ý tự động nhằm tăng doanh thu.")
