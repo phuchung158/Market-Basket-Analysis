@@ -20,4 +20,6 @@
 ├── requirements.txt    # Danh sách thư viện cần cài đặt
 ├── data/               # Thư mục chứa dữ liệu
 │   └── Groceries_dataset.csv
+├── models/               # thư mục mô hình đã train
+│   └── file.pkl
 └── README.md           # Hướng dẫn dự án
