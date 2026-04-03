@@ -3,7 +3,7 @@ from mlxtend.frequent_patterns import apriori, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
 # 1. Đọc dữ liệu (Thay đường dẫn file của bạn vào đây)
-data = pd.read_csv(r'D:\PhucHung\Apriori\data\Groceries_dataset')
+data = pd.read_csv('data/Groceries_dataset.csv')
 
 # 2. TIỀN XỬ LÝ (LÀM SẠCH)
 # Gom các sản phẩm của cùng 1 người mua trong cùng 1 ngày thành 1 giỏ hàng
