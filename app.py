@@ -3,6 +3,7 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pickle
 from mlxtend.frequent_patterns import apriori, fpgrowth, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
