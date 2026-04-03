@@ -37,7 +37,7 @@ page = st.sidebar.radio("Chọn trang hiển thị:",
 
 # --- TRANG 1: GIỚI THIỆU & KHÁM PHÁ DỮ LIỆU (EDA) ---
 if page == "Trang 1: Giới thiệu & EDA":
-    st.title("🛒 Market Basket Analysis")
+    st.title("🛒 Phân tích hành vi mua sắm khách hàng")
     
     # 1. Thông tin bắt buộc
     with st.container(border=True):
@@ -52,12 +52,37 @@ if page == "Trang 1: Giới thiệu & EDA":
     Từ đó tối ưu hóa việc sắp xếp kệ hàng (đặt các món hay mua cùng nhau gần nhau) và thiết kế 
     các chương trình khuyến mãi Combo hiệu quả để tăng doanh thu.""")
 
+    # --- PHẦN BỔ SUNG: CÁC CHỈ SỐ TỔNG QUAN ---
+    st.subheader("📊 Tổng quan bộ dữ liệu")
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Tổng số dòng dữ liệu", f"{len(df):,}")
+    m2.metric("Số lượng sản phẩm", f"{df['itemDescription'].nunique()}")
+    m3.metric("Số lượng giao dịch", f"{len(transactions):,}")
+
     # 3. Hiển thị dữ liệu thô
-    st.subheader("📊 Khám phá dữ liệu (EDA)")
-    st.write("Một phần dữ liệu giao dịch mẫu:")
-    st.dataframe(df.head(10), use_container_width=True)
+    st.subheader("🔍 1. Khám phá dữ liệu thô")
+    st.write("Dữ liệu giao dịch mẫu (Lướt để xem chi tiết):")
+    st.dataframe(df.head(100), use_container_width=True, height=300)
+
+    # --- PHẦN BỔ SUNG: BẢNG LƯỚT LÊN XUỐNG THỐNG KÊ SẢN PHẨM ---
+    st.subheader("📦 2. Danh mục sản phẩm & Số lượng bán")
+    st.write("Bảng thống kê chi tiết tần suất xuất hiện của từng sản phẩm (Lướt để xem toàn bộ):")
+    
+    # Tính toán bảng thống kê
+    product_stats = df['itemDescription'].value_counts().reset_index()
+    product_stats.columns = ['Tên sản phẩm', 'Số lượng đã bán']
+    
+    # Hiển thị bảng có thanh cuộn (height=400 tạo ra thanh cuộn dọc)
+    st.dataframe(
+        product_stats, 
+        use_container_width=True, 
+        height=400, 
+        hide_index=True
+    )
+    st.caption("💡 Bạn có thể nhấn vào tên cột để sắp xếp sản phẩm theo số lượng.")
 
     # 4. Biểu đồ phân tích
+    st.subheader("📈 3. Biểu đồ phân tích trực quan")
     col1, col2 = st.columns(2)
     with col1:
         st.write("**Top 10 sản phẩm xuất hiện nhiều nhất**")
@@ -77,9 +102,10 @@ if page == "Trang 1: Giới thiệu & EDA":
     # 5. Giải thích dữ liệu
     st.markdown("""
     **Nhận xét về dữ liệu:**
-    - **Quy mô:** Dữ liệu có hơn 38,000 dòng ghi nhận giao dịch của khách hàng.
+    - **Quy mô:** Dữ liệu có hơn **38,000 dòng** ghi nhận giao dịch của khách hàng.
     - **Đặc trưng:** Có 3 cột chính (`Member_number`, `Date`, `itemDescription`). Trong đó `itemDescription` là đặc trưng quan trọng nhất để khai phá quy luật.
-    - **Độ lệch:** Dữ liệu bị lệch về phía các mặt hàng thiết yếu (Sữa, rau củ). Đa số các giỏ hàng chỉ có từ 2-5 sản phẩm, điều này đòi hỏi ngưỡng *Support* phải đặt thấp mới tìm được quy luật.
+    - **Độ lệch:** Dữ liệu bị lệch về phía các mặt hàng thiết yếu như **Sữa (Whole milk)** và **Rau củ (Other vegetables)**. 
+    - **Hành vi:** Đa số các giỏ hàng chỉ có từ **2-5 sản phẩm**, điều này cho thấy khách hàng thường mua lẻ tẻ, đòi hỏi thuật toán phải có ngưỡng hỗ trợ thấp để tìm ra sự liên kết.
     """)
 
 # --- TRANG 2: TRIỂN KHAI MÔ HÌNH ---
