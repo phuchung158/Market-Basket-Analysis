@@ -83,48 +83,82 @@ if page == "Trang 1: Giới thiệu & EDA":
 
 # --- TRANG 2: TRIỂN KHAI MÔ HÌNH ---
 elif page == "Trang 2: Triển khai dự báo":
-    st.title("🎯 Gợi ý sản phẩm thông minh")
+    st.title("🎯 Triển khai Mô hình Dự báo Mua sắm")
+    st.markdown("---")
+
+    # 1. XỬ LÝ LOGIC: LOAD MÔ HÌNH ĐÃ HUẤN LUYỆN
+    # Đảm bảo bạn đã có thư mục models/ và file trained_model.pkl trong đó
+    try:
+        with open('models/trained_model.pkl', 'rb') as f:
+            model_rules = pickle.load(f)
+        st.sidebar.success("✅ Đã kết nối với mô hình thành công!")
+    except FileNotFoundError:
+        st.sidebar.error("❌ Lỗi: Không tìm thấy file 'models/trained_model.pkl'. Hãy chạy file huấn luyện trước!")
+        st.stop() # Dừng ứng dụng nếu không có mô hình
+
+    # 2. THIẾT KẾ GIAO DIỆN NHẬP LIỆU (Sử dụng đa dạng Widget)
+    st.subheader("📝 Nhập thông tin giao dịch")
     
-    # Thiết kế giao diện nhập liệu
-    st.sidebar.header("Cấu hình mô hình")
-    algo_choice = st.sidebar.selectbox("Chọn thuật toán chạy:", ["Apriori", "FP-Growth"])
-    min_supp = st.sidebar.number_input("Ngưỡng hỗ trợ (Support)", 0.001, 0.01, 0.001, format="%.3f")
-    min_conf = st.sidebar.slider("Ngưỡng tin cậy (Confidence)", 0.05, 0.5, 0.1)
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Widget selectbox: Chọn sản phẩm (Danh mục)
+            all_products = sorted(df['itemDescription'].unique())
+            selected_item = st.selectbox("🛍️ Chọn sản phẩm khách đang cầm trên tay:", all_products)
+            
+            # Widget number_input: Số lượng gợi ý (Số)
+            num_rec = st.number_input("🔢 Số lượng sản phẩm muốn gợi ý thêm:", min_value=1, max_value=5, value=2)
 
-    # Xử lý logic tiền xử lý & chạy mô hình
-    te = TransactionEncoder()
-    te_ary = te.fit(transactions).transform(transactions)
-    df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
+        with col2:
+            # Widget slider: Ngưỡng tin cậy (Xác suất)
+            conf_threshold = st.slider("🎯 Ngưỡng tin cậy tối thiểu (Confidence):", 0.01, 0.50, 0.10)
+            
+            # Widget text_input: Thông tin khách hàng (Văn bản)
+            customer_name = st.text_input("👤 Tên khách hàng hoặc Mã thẻ:", "Khách hàng thân thiết")
 
-    # Chạy thuật toán được chọn
-    if algo_choice == "Apriori":
-        frequent_itemsets = apriori(df_encoded, min_support=min_supp, use_colnames=True)
-    else:
-        frequent_itemsets = fpgrowth(df_encoded, min_support=min_supp, use_colnames=True)
+    # 3. XỬ LÝ LOGIC DỰ BÁO & TIỀN XỬ LÝ
+    st.markdown("### 🚀 Kết quả phân tích hành vi")
     
-    rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
-    rules = rules[rules['confidence'] >= min_conf]
+    if st.button("Thực hiện dự báo ngay"):
+        with st.spinner('Mô hình đang tính toán quy luật...'):
+            # Giả lập thời gian xử lý để giao diện chuyên nghiệp hơn
+            time.sleep(0.5) 
+            
+            # Logic tiền xử lý input: Lọc các luật từ file .pkl khớp với sản phẩm đã chọn
+            # và thỏa mãn ngưỡng tin cậy người dùng thiết lập
+            results = model_rules[
+                (model_rules['antecedents'].apply(lambda x: selected_item in x)) & 
+                (model_rules['confidence'] >= conf_threshold)
+            ].sort_values(by='lift', ascending=False).head(num_rec)
 
-    # Giao diện tương tác
-    st.subheader("🎮 Trải nghiệm dự đoán mua kèm")
-    all_products = sorted(df['itemDescription'].unique())
-    user_item = st.selectbox("Khách hàng đang mua sản phẩm:", all_products)
-
-    if st.button("Dự đoán sản phẩm mua thêm"):
-        if not rules.empty:
-            res = rules[rules['antecedents'].apply(lambda x: user_item in x)].sort_values(by='lift', ascending=False)
-            if not res.empty:
-                best_match = list(res.iloc[0]['consequents'])[0]
-                lift_score = res.iloc[0]['lift']
-                conf_score = res.iloc[0]['confidence']
+            # 4. HIỂN THỊ KẾT QUẢ DỰ BÁO RÕ RÀNG
+            if not results.empty:
+                st.write(f"Dựa trên lịch sử mua sắm, hệ thống đề xuất cho **{customer_name}**:")
                 
-                st.success(f"✅ Dự báo: Khách hàng thường mua kèm **{best_match}**")
-                st.metric("Độ tin cậy (Confidence)", f"{conf_score:.2%}")
-                st.write(f"👉 Ý nghĩa: Khả năng mua {best_match} tăng gấp **{lift_score:.2f} lần** khi có {user_item} trong giỏ.")
+                # Duyệt qua các kết quả để hiển thị từng thẻ (Card)
+                for i in range(len(results)):
+                    suggested_item = list(results.iloc[i]['consequents'])[0]
+                    confidence_val = results.iloc[i]['confidence']
+                    lift_val = results.iloc[i]['lift']
+                    
+                    with st.expander(f"🌟 Gợi ý {i+1}: {suggested_item}", expanded=True):
+                        c1, c2 = st.columns(2)
+                        
+                        # Hiển thị kết quả rõ ràng (Ví dụ: "Đây là sản phẩm phù hợp")
+                        c1.write(f"📦 Sản phẩm: **{suggested_item}**")
+                        
+                        # Hiển thị độ tin cậy/xác suất dưới dạng Metric và Progress Bar
+                        c2.metric("Độ tin cậy (Confidence)", f"{confidence_val:.2%}")
+                        st.write(f"Độ liên quan (Lift): {lift_val:.2f}")
+                        st.progress(confidence_val)
+                
+                st.success("Dự báo hoàn tất! Hãy sắp xếp các sản phẩm này cạnh nhau trên kệ hàng.")
+                st.balloons() # Hiệu ứng trang trí khi dự báo thành công
             else:
-                st.warning("Chưa có quy luật phù hợp cho sản phẩm này với cấu hình hiện tại.")
-        else:
-            st.error("Không tìm thấy quy luật nào. Hãy giảm ngưỡng Support hoặc Confidence!")
+                # Thông báo rõ ràng khi không có kết quả
+                st.warning(f"Sản phẩm '{selected_item}' chưa có quy luật mua kèm nào thỏa mãn độ tin cậy {conf_threshold*100:.0f}%.")
+                st.info("💡 Hướng dẫn: Bạn hãy thử giảm 'Ngưỡng tin cậy' ở phía trên để tìm thấy nhiều gợi ý hơn.")
 
 # --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
 # --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
