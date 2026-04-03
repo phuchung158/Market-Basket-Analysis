@@ -5,6 +5,28 @@ import seaborn as sns
 from mlxtend.frequent_patterns import apriori, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
+# --- TÙY CHỈNH KÍCH THƯỚC CHỮ (CSS) ---
+st.markdown("""
+    <style>
+    /* Chỉnh kích thước chữ cho toàn bộ app */
+    html, body, [class*="View"] {
+        font-size: 20px; 
+    }
+    /* Chỉnh riêng cho bảng dữ liệu (dataframe) */
+    .stDataFrame div {
+        font-size: 18px !important;
+    }
+    /* Chỉnh cho các dòng thông báo Success/Warning */
+    .stAlert p {
+        font-size: 22px !important;
+        font-weight: bold;
+    }
+    /* Chỉnh tiêu đề các cột trong bảng */
+    thead tr th {
+        font-size: 20px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Đồ án Market Basket Analysis", layout="wide")
 
