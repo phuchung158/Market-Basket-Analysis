@@ -199,52 +199,59 @@ elif page == "Trang 2: Triển khai dự báo":
                 st.warning("Không tìm thấy gợi ý phù hợp.")
 # --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
 # --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
+# --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG (EVALUATION) ---
 elif page == "Trang 3: Đánh giá & Hiệu năng":
-    st.title("📊 Đánh giá & So sánh mô hình")
+    st.title("📊 Đánh giá & Hiệu năng Mô hình")
+    st.markdown("---")
 
+    # 1. CÁC CHỈ SỐ ĐO LƯỜNG ĐẶC THÙ (Thay cho Accuracy/RMSE)
+    st.subheader("1. Các chỉ số đo lường chất lượng luật")
+    
     try:
-        # 1. Đo lường hiệu năng thời gian
-        # Dùng một mẫu nhỏ hoặc cache để tránh treo máy
-        te = TransactionEncoder()
-        te_ary = te.fit(transactions).transform(transactions)
-        df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
-
-        with st.spinner('Đang tính toán so sánh hiệu năng...'):
-            t1 = time.time()
-            apriori(df_encoded, min_support=0.002, use_colnames=True) # Tăng support lên cho nhanh
-            time_apriori = time.time() - t1
-
-            t2 = time.time()
-            fpgrowth(df_encoded, min_support=0.002, use_colnames=True)
-            time_fpgrowth = time.time() - t2
-
-        # Hiển thị chỉ số
-        st.subheader("1. Tốc độ xử lý (Vấn đề tối ưu)")
-        col1, col2 = st.columns(2)
-        col1.metric("Thời gian chạy Apriori", f"{time_apriori:.4f}s")
-        col2.metric("Thời gian chạy FP-Growth", f"{time_fpgrowth:.4f}s")
-        st.info("💡 Nhận xét: FP-Growth thường nhanh hơn khi dữ liệu lớn nhờ cấu trúc cây nén dữ liệu.")
-
-        # 2. Biểu đồ kỹ thuật
-        st.subheader("2. Phân tích các chỉ số đo lường")
-        # Lấy lại rules để vẽ biểu đồ
-        freq = fpgrowth(df_encoded, min_support=0.001, use_colnames=True)
-        rules_eval = association_rules(freq, metric="lift", min_threshold=1)
+        with open('models/trained_model.pkl', 'rb') as f:
+            rules_eval = pickle.load(f)
         
-        if not rules_eval.empty:
-            fig3, ax3 = plt.subplots(figsize=(10, 5))
-            scatter = ax3.scatter(rules_eval['support'], rules_eval['confidence'], c=rules_eval['lift'], cmap='YlOrRd')
-            plt.colorbar(scatter, label='Chỉ số Lift')
-            ax3.set_xlabel('Độ hỗ trợ (Support)')
-            ax3.set_ylabel('Độ tin cậy (Confidence)')
-            st.pyplot(fig3)
-        else:
-            st.warning("Không đủ dữ liệu luật để vẽ biểu đồ.")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Tổng số luật tìm được", f"{len(rules_eval)}")
+        c2.metric("Độ tin cậy TB (Confidence)", f"{rules_eval['confidence'].mean():.2%}")
+        c3.metric("Độ tương quan TB (Lift)", f"{rules_eval['lift'].mean():.2f}")
 
-        # 3. Phân tích sai số
-        st.subheader("3. Phân tích & Hướng cải thiện")
-        st.write("- **Hạn chế:** Thuật toán nhạy cảm với các mặt hàng phổ biến, dễ tạo ra các luật 'hiển nhiên'.")
-        st.write("- **Cải thiện:** Cần áp dụng thêm lọc luật theo giá trị kinh doanh (Profit) thay vì chỉ dựa vào tần suất.")
+        st.info("""
+        **Giải thích chỉ số:**
+        - **Support (Độ hỗ trợ):** Tần suất xuất hiện của cặp sản phẩm trong toàn bộ dữ liệu.
+        - **Confidence (Độ tin cậy):** Xác suất khách mua món B khi đã cầm món A trên tay.
+        - **Lift (Độ tương quan):** Chỉ số quan trọng nhất. Lift > 1 chứng tỏ mối quan hệ là thực tế (không phải ngẫu nhiên).
+        """)
 
-    except Exception as e:
-        st.error(f"Đã xảy ra lỗi khi tải Trang 3: {e}")
+        # 2. BIỂU ĐỒ KỸ THUẬT: Scatter Plot (Thay cho Confusion Matrix)
+        st.subheader("2. Biểu đồ kỹ thuật: Phân tán luật kết hợp")
+        
+        fig, ax = plt.subplots(figsize=(10, 5))
+        scatter = ax.scatter(rules_eval['support'], rules_eval['confidence'], 
+                           c=rules_eval['lift'], cmap='YlOrRd', alpha=0.6)
+        plt.colorbar(scatter, label='Chỉ số Lift')
+        ax.set_xlabel('Support')
+        ax.set_ylabel('Confidence')
+        ax.set_title('Tương quan giữa Support, Confidence và Lift')
+        st.pyplot(fig)
+
+        # 3. PHÂN TÍCH SAI SỐ & HẠN CHẾ
+        st.subheader("3. Phân tích sai số và Nhận định")
+        
+        with st.expander("🔍 Tại sao mô hình có thể dự báo chưa tối ưu?", expanded=True):
+            st.write("""
+            - **Trường hợp sai số:** Mô hình thường đưa ra các gợi ý có Confidence thấp (dưới 20%). 
+            - **Nguyên nhân:** Do dữ liệu siêu thị cực kỳ phân tán. Một khách mua sữa có thể chọn kèm theo 160 loại mặt hàng khác nhau, dẫn đến xác suất cho một món cụ thể bị chia nhỏ.
+            - **Lệch dữ liệu:** Các mặt hàng bán quá chạy (Whole milk) xuất hiện trong hầu hết các luật, làm lu mờ các quy luật của những mặt hàng ngách.
+            """)
+
+        # 4. HƯỚNG CẢI THIỆN
+        st.subheader("🚀 Hướng cải thiện")
+        st.success("""
+        1. **Phân đoạn khách hàng (Clustering):** Chia khách hàng thành các nhóm (Ví dụ: Nhóm thích đồ ngọt, nhóm nội trợ) trước khi chạy FP-Growth để có luật chính xác hơn cho từng nhóm.
+        2. **Bổ sung biến thời gian:** Phân tích theo mùa (Tết mua gì, Hè mua gì) để gợi ý mang tính thời điểm cao hơn.
+        3. **Dữ liệu lớn hơn:** Thu thập thêm lịch sử giao dịch để tăng độ tin cậy cho các mặt hàng ít phổ biến.
+        """)
+
+    except FileNotFoundError:
+        st.error("⚠️ Vui lòng chạy huấn luyện mô hình để có dữ liệu đánh giá!")
