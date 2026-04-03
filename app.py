@@ -1,169 +1,118 @@
 import streamlit as st
 import pandas as pd
+import time
 import matplotlib.pyplot as plt
 import seaborn as sns
-from mlxtend.frequent_patterns import apriori, association_rules
+from mlxtend.frequent_patterns import apriori, fpgrowth, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
-# --- TÙY CHỈNH KÍCH THƯỚC CHỮ (CSS) ---
+# --- CẤU HÌNH TRANG ---
+st.set_page_config(page_title="So sánh Apriori & FP-Growth", layout="wide")
+
+# --- CSS TÙY CHỈNH CHỮ TO ---
 st.markdown("""
     <style>
-    /* Chỉnh kích thước chữ cho toàn bộ app */
-    html, body, [class*="View"] {
-        font-size: 20px; 
-    }
-    /* Chỉnh riêng cho bảng dữ liệu (dataframe) */
-    .stDataFrame div {
-        font-size: 18px !important;
-    }
-    /* Chỉnh cho các dòng thông báo Success/Warning */
-    .stAlert p {
-        font-size: 22px !important;
-        font-weight: bold;
-    }
-    /* Chỉnh tiêu đề các cột trong bảng */
-    thead tr th {
-        font-size: 20px !important;
-    }
+    html, body, [class*="View"] { font-size: 18px; }
+    .stDataFrame div { font-size: 16px !important; }
+    .stAlert p { font-size: 20px !important; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
-# --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Đồ án Market Basket Analysis", layout="wide")
 
-# --- HÀM LOAD DỮ LIỆU (Dùng Cache để tăng tốc) ---
+# --- LOAD DỮ LIỆU ---
 @st.cache_data
 def get_data():
     df = pd.read_csv('data/Groceries_dataset.csv')
-    # Tiền xử lý để tạo giỏ hàng
     transactions = df.groupby(['Member_number', 'Date'])['itemDescription'].apply(list).values.tolist()
     return df, transactions
 
 df, transactions = get_data()
 
-# --- THANH ĐIỀU HƯỚNG (SIDEBAR) ---
-st.sidebar.title("📌 Danh mục dự án")
-page = st.sidebar.radio("Chọn trang hiển thị:", 
-    ["Trang 1: Giới thiệu & EDA", 
-     "Trang 2: Triển khai mô hình", 
-     "Trang 3: Đánh giá hiệu năng"])
+# --- SIDEBAR ĐIỀU HƯỚNG ---
+st.sidebar.title("📌 Menu Dự Án")
+page = st.sidebar.radio("Chọn trang:", ["EDA & Giới thiệu", "So sánh Thuật toán", "Gợi ý thông minh"])
 
-# ---------------------------------------------------------
-# TRANG 1: GIỚI THIỆU & KHÁM PHÁ DỮ LIỆU (EDA)
-# ---------------------------------------------------------
-if page == "Trang 1: Giới thiệu & EDA":
-    st.title("🚀 Phân tích quy luật mua sắm (Market Basket Analysis)")
-    
-    # Thông tin SV
-    with st.expander("ℹ️ Thông tin sinh viên thực hiện", expanded=True):
-        st.write("**Họ tên SV:** Hà Thúc Phúc Hưng")
-        st.write("**MSSV:** 22T1020618")
-        st.write("**Đề tài:** Tối ưu hóa Giỏ hàng với Thuật toán Apriori.")
+# THÔNG SỐ CHUNG TRÊN SIDEBAR
+st.sidebar.header("Cấu hình thuật toán")
+min_supp = st.sidebar.slider("Ngưỡng hỗ trợ (Support)", 0.001, 0.01, 0.001, format="%.3f")
+min_conf = st.sidebar.slider("Ngưỡng tin cậy (Confidence)", 0.01, 0.5, 0.1)
 
-    st.subheader("1. Giá trị thực tiễn")
-    st.info("Bài toán giúp doanh nghiệp hiểu thói quen mua sắm 'kèm theo' của khách hàng. Từ đó tối ưu việc sắp xếp kệ hàng, thiết kế các gói Combo khuyến mãi và xây dựng hệ thống gợi ý tự động nhằm tăng doanh thu.")
-
-    st.subheader("2. Khám phá dữ liệu thô")
+# --- TRANG 1: EDA ---
+if page == "EDA & Giới thiệu":
+    st.title("📊 Khám phá dữ liệu & Giới thiệu")
+    st.info("**Đề tài:** So sánh hiệu năng Apriori và FP-Growth trong khai phá luật kết hợp.")
+    st.subheader("Dữ liệu thô")
     st.dataframe(df.head(10), use_container_width=True)
-
-    st.subheader("3. Biểu đồ phân tích (EDA)")
+    
     col1, col2 = st.columns(2)
-
     with col1:
-        st.write("**Top 10 sản phẩm bán chạy nhất**")
-        top_items = df['itemDescription'].value_counts().head(10)
+        st.write("**Top 10 sản phẩm phổ biến**")
         fig, ax = plt.subplots()
-        sns.barplot(x=top_items.values, y=top_items.index, palette='viridis', ax=ax)
+        df['itemDescription'].value_counts().head(10).plot(kind='bar', ax=ax, color='skyblue')
         st.pyplot(fig)
-
     with col2:
-        st.write("**Tần suất mua sắm theo tháng**")
+        st.write("**Số lượng hóa đơn theo thời gian**")
         df['Date'] = pd.to_datetime(df['Date'])
-        monthly_counts = df.resample('ME', on='Date').size()
         fig2, ax2 = plt.subplots()
-        monthly_counts.plot(kind='line', marker='o', ax=ax2, color='orange')
+        df.resample('ME', on='Date').size().plot(ax=ax2, color='green')
         st.pyplot(fig2)
 
-    st.markdown("""
-    **Nhận xét về dữ liệu:**
-    - Dữ liệu bao gồm hơn 38,000 giao dịch đơn lẻ.
-    - **Đặc trưng:** Có 3 cột chính là `Member_number`, `Date` và `itemDescription`.
-    - **Độ lệch:** Dữ liệu tập trung mạnh vào các mặt hàng thiết yếu như Sữa tươi (Whole milk) và Rau củ. Đây là đặc trưng quan trọng để thiết lập ngưỡng *Support* phù hợp.
-    """)
-
-# ---------------------------------------------------------
-# TRANG 2: TRIỂN KHAI MÔ HÌNH
-# ---------------------------------------------------------
-elif page == "Trang 2: Triển khai mô hình":
-    st.title("🎯 Triển khai hệ thống gợi ý")
+# --- TRANG 2: SO SÁNH THUẬT TOÁN ---
+elif page == "So sánh Thuật toán":
+    st.title("⚖️ So sánh Apriori vs FP-Growth")
     
-    st.sidebar.header("Cấu hình thuật toán")
-    min_supp = st.sidebar.slider("Ngưỡng hỗ trợ (Support)", 0.001, 0.01, 0.001, format="%.3f")
-    min_conf = st.sidebar.slider("Ngưỡng tin cậy (Confidence)", 0.01, 0.5, 0.1)
-
-    # Xử lý Logic (Tiền xử lý & Apriori)
+    # Tiền xử lý ma trận
     te = TransactionEncoder()
     te_ary = te.fit(transactions).transform(transactions)
     df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
-    
-    # Chạy mô hình
-    frequent_itemsets = apriori(df_encoded, min_support=min_supp, use_colnames=True)
-    rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
-    rules = rules[rules['confidence'] >= min_conf]
 
-    st.subheader("🎮 Trải nghiệm gợi ý thực tế")
-    all_items = sorted(df['itemDescription'].unique())
-    user_input = st.selectbox("Chọn sản phẩm khách hàng vừa bỏ vào giỏ:", all_items)
+    # 1. Chạy Apriori
+    start_time = time.time()
+    freq_apriori = apriori(df_encoded, min_support=min_supp, use_colnames=True)
+    apriori_time = time.time() - start_time
 
-    if st.button("Dự đoán sản phẩm mua kèm"):
-        # 1. Kiểm tra xem bảng rules có dữ liệu không
-        if not rules.empty:
-            # 2. Tìm luật liên quan đến sản phẩm người dùng chọn
-            res = rules[rules['antecedents'].apply(lambda x: user_input in x)]
-            
-            if not res.empty:
-                # 3. Chỉ sắp xếp khi kết quả lọc không rỗng
-                res = res.sort_values(by='lift', ascending=False)
-                
-                suggested = list(res.iloc[0]['consequents'])[0]
-                conf = res.iloc[0]['confidence']
-                lift = res.iloc[0]['lift']
-                
-                st.success(f"✅ Kết quả dự báo: Khách hàng khả năng cao sẽ mua thêm **{suggested}**")
-                st.metric(label="Độ tin cậy (Confidence)", value=f"{conf*100:.2f}%")
-                st.metric(label="Chỉ số Lift (Độ cải thiện)", value=f"{lift:.2f}")
-            else:
-                st.warning(f"Sản phẩm '{user_input}' hiện không nằm trong quy luật nào với ngưỡng hiện tại. Hãy thử giảm Ngưỡng tin cậy.")
-        else:
-            st.error("❌ Không tìm thấy luật kết hợp nào! Vui lòng giảm 'Ngưỡng tin cậy' hoặc 'Ngưỡng hỗ trợ' ở bên trái.")
-# ---------------------------------------------------------
-# TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG
-# ---------------------------------------------------------
-elif page == "Trang 3: Đánh giá hiệu năng":
-    st.title("📊 Đánh giá chất lượng mô hình")
+    # 2. Chạy FP-Growth
+    start_time = time.time()
+    freq_fpgrowth = fpgrowth(df_encoded, min_support=min_supp, use_colnames=True)
+    fpgrowth_time = time.time() - start_time
 
-    # Tính toán lại rules để lấy thông số hiển thị
-    te = TransactionEncoder()
-    te_ary = te.fit(transactions).transform(transactions)
-    df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
-    frequent_itemsets = apriori(df_encoded, min_support=0.001, use_colnames=True)
-    rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
+    # Hiển thị kết quả so sánh
+    col1, col2 = st.columns(2)
+    col1.metric("Thời gian chạy Apriori", f"{apriori_time:.4f} giây")
+    col2.metric("Thời gian chạy FP-Growth", f"{fpgrowth_time:.4f} giây")
 
-    st.subheader("1. Các chỉ số đo lường đặc thù")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Tổng số luật tìm được", len(rules))
-    c2.metric("Support trung bình", f"{rules['support'].mean():.4f}")
-    c3.metric("Lift cao nhất", f"{rules['lift'].max():.2f}")
-
-    st.subheader("2. Biểu đồ phân bố các chỉ số")
-    fig3, ax3 = plt.subplots(figsize=(10, 4))
-    sns.scatterplot(data=rules, x="support", y="confidence", hue="lift", palette="magma", ax=ax3)
-    plt.title("Mối quan hệ giữa Support, Confidence và Lift")
+    # Biểu đồ so sánh
+    st.subheader("Biểu đồ so sánh tốc độ")
+    fig3, ax3 = plt.subplots(figsize=(8, 3))
+    algos = ['Apriori', 'FP-Growth']
+    times = [apriori_time, fpgrowth_time]
+    sns.barplot(x=times, y=algos, palette='coolwarm', ax=ax3)
     st.pyplot(fig3)
 
-    st.subheader("3. Phân tích sai số & Hướng cải thiện")
-    st.markdown("""
-    - **Sai số/Hạn chế:** Thuật toán thường gợi ý các mặt hàng quá phổ biến (như sữa tươi) cho mọi sản phẩm đầu vào vì tần suất xuất hiện của chúng quá cao trong tập dữ liệu.
-    - **Trường hợp dự đoán yếu:** Các mặt hàng xa xỉ hoặc ít người mua (như đồ gia dụng đắt tiền) thường không đủ ngưỡng *Support* để sinh ra luật.
-    - **Hướng cải thiện:** 1. Sử dụng thuật toán FP-Growth để tăng tốc độ xử lý.
-        2. Kết hợp thêm thông tin cá nhân hóa khách hàng (tuổi, giới tính) thay vì chỉ dựa vào giỏ hàng đơn thuần.
+    st.markdown(f"""
+    **Nhận xét:** - FP-Growth thường chạy **nhanh hơn** Apriori vì nó sử dụng cấu trúc cây (FP-Tree) thay vì phải quét dữ liệu nhiều lần và tạo ứng viên (candidates) như Apriori.
+    - Cả hai thuật toán đều cho ra **{len(freq_apriori)} tập mục phổ biến** giống hệt nhau.
     """)
+
+# --- TRANG 3: GỢI Ý ---
+elif page == "Gợi ý thông minh":
+    st.title("🔍 Demo Gợi ý thực tế")
+    # Sử dụng kết quả từ FP-Growth cho nhanh
+    te = TransactionEncoder()
+    te_ary = te.fit(transactions).transform(transactions)
+    df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
+    
+    freq_itemsets = fpgrowth(df_encoded, min_support=min_supp, use_colnames=True)
+    rules = association_rules(freq_itemsets, metric="lift", min_threshold=1)
+    rules = rules[rules['confidence'] >= min_conf]
+
+    all_items = sorted(df['itemDescription'].unique())
+    user_input = st.selectbox("Khách hàng đang chọn sản phẩm:", all_items)
+
+    if st.button("Dự đoán"):
+        res = rules[rules['antecedents'].apply(lambda x: user_input in x)].sort_values(by='lift', ascending=False)
+        if not res.empty:
+            suggested = list(res.iloc[0]['consequents'])[0]
+            st.success(f"💡 Gợi ý mua kèm: **{suggested}**")
+            st.write(f"Độ tin cậy: {res.iloc[0]['confidence']:.2%}")
+        else:
+            st.warning("Không tìm thấy luật phù hợp.")
