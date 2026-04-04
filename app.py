@@ -163,7 +163,8 @@ elif page == "Trang 2: Triển khai dự báo":
     if st.button("Thực hiện dự báo ngay"):
         with st.spinner('Mô hình đang tính toán...'):
             # 1. Lọc luật dựa trên sản phẩm đã chọn
-            res = model_rules[model_rules['antecedents'].apply(lambda x: selected_item in x)]
+            input_set = {selected_item}
+            res = model_rules[model_rules['antecedents'].apply(lambda x: input_set.issubset(x))]
             res = res[res['confidence'] >= conf_threshold]
 
             # 2. TIỀN XỬ LÝ: Loại bỏ các gợi ý trùng tên sản phẩm (Chỉ giữ lại cái tốt nhất)
