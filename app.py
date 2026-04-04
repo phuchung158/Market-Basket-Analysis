@@ -152,7 +152,7 @@ elif page == " Triển khai dự báo":
 
         with col2:
             # Widget slider: Ngưỡng tin cậy (Xác suất)
-            conf_threshold = st.slider("🎯 Ngưỡng tin cậy tối thiểu (Confidence):", 0.01, 0.50, 0.10)
+            conf_threshold = st.slider("🎯 Ngưỡng tin cậy tối thiểu (Confidence):", 0.01, 0.50, 0.05)
             
             # Widget text_input: Thông tin khách hàng (Văn bản)
             customer_name = st.text_input("👤 Tên khách hàng hoặc Mã thẻ:", "Khách hàng thân thiết")
