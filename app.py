@@ -31,9 +31,9 @@ df, transactions = load_data()
 # --- THANH ĐIỀU HƯỚNG SIDEBAR ---
 st.sidebar.title("📌 Danh mục nội dung")
 page = st.sidebar.radio("Chọn trang hiển thị:", 
-    ["Trang 1: Giới thiệu & EDA", 
-     "Trang 2: Triển khai dự báo", 
-     "Trang 3: Đánh giá & Hiệu năng"])
+    [" Giới thiệu & EDA", 
+     " Triển khai dự báo", 
+     " Đánh giá & Hiệu năng"])
 
 # --- GIỚI THIỆU & KHÁM PHÁ DỮ LIỆU (EDA) ---
 if page == "Trang 1: Giới thiệu & EDA":
