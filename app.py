@@ -83,7 +83,6 @@ if page == "Trang 1: Giới thiệu & EDA":
             "Số lượng đã bán": st.column_config.NumberColumn("Số lượng đã bán", format="%d 🛒")
         }
     )
-    st.caption("✨ Mẹo: Di chuột vào bảng, nhấn nút kính lúp ở góc phải để tìm sản phẩm cụ thể.")
 
     # 5. Biểu đồ phân tích trực quan
     st.subheader("📈 3. Biểu đồ phân tích")
