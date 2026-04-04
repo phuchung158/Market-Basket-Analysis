@@ -35,7 +35,7 @@ page = st.sidebar.radio("Chọn trang hiển thị:",
      "Trang 2: Triển khai dự báo", 
      "Trang 3: Đánh giá & Hiệu năng"])
 
-# --- TRANG 1: GIỚI THIỆU & KHÁM PHÁ DỮ LIỆU (EDA) ---
+# --- GIỚI THIỆU & KHÁM PHÁ DỮ LIỆU (EDA) ---
 if page == "Trang 1: Giới thiệu & EDA":
     st.title("🛒 Phân tích hành vi mua sắm khách hàng")
     
@@ -121,7 +121,7 @@ if page == "Trang 1: Giới thiệu & EDA":
         - Điều này giải thích tại sao chúng ta cần sử dụng thuật toán mạnh như **FP-Growth** để xử lý hiệu quả hơn so với Apriori truyền thống.
         """)
 
-# --- TRANG 2: TRIỂN KHAI MÔ HÌNH ---
+# --- TRIỂN KHAI MÔ HÌNH ---
 elif page == "Trang 2: Triển khai dự báo":
     st.title("🎯 Triển khai Mô hình Dự báo Mua sắm")
     st.markdown("---")
@@ -197,9 +197,7 @@ elif page == "Trang 2: Triển khai dự báo":
                 st.balloons()
             else:
                 st.warning("Không tìm thấy gợi ý phù hợp.")
-# --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
-# --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG ---
-# --- TRANG 3: ĐÁNH GIÁ & HIỆU NĂNG (EVALUATION) ---
+# --- ĐÁNH GIÁ & HIỆU NĂNG (EVALUATION) ---
 elif page == "Trang 3: Đánh giá & Hiệu năng":
     st.title("📊 Đánh giá & Hiệu năng Mô hình")
     st.markdown("---")
