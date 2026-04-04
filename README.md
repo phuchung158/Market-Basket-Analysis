@@ -1,4 +1,4 @@
-🛒 Market Basket Analysis - Phân tích hành vi mua sắm khách hàng và gợi ý sản phẩm dựa trên thuật toán Apriori & FP-Growth
+🛒 Market Basket Analysis - Phân tích hành vi mua sắm và gợi ý sản phẩm dựa trên thuật toán FP-Growth nhằm nâng cao hiệu quả kinh doanh
 
 . Ứng dụng khai phá luật kết hợp từ dữ liệu giao dịch siêu thị để đưa ra các chiến lược gợi ý sản phẩm thông minh.
 
@@ -9,7 +9,8 @@
 
 ## 🛠 Công nghệ sử dụng
 * **Ngôn ngữ:** Python 3.x
-* **Thư viện chính:** * `mlxtend`: Triển khai thuật toán Apriori,Thuật Toán FP-Growth và Association Rules.
+* **Thư viện chính:**
+    *  `mlxtend`: Triển khai thuật toán Apriori,Thuật Toán FP-Growth và Association Rules.
     * `pandas`: Tiền xử lý và làm sạch dữ liệu.
     * `streamlit`: Xây dựng giao diện ứng dụng Web trực quan.
     * `matplotlib` & `seaborn`: Trực quan hóa các chỉ số đo lường.
