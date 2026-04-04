@@ -236,8 +236,6 @@ elif page == " Đánh giá & Hiệu năng":
         st.pyplot(fig)
 
         st.subheader("3. Heatmap: Mối tương quan giữa các cặp sản phẩm (Top Lift)")
-        
-        # 3. PHÂN TÍCH SAI SỐ & HẠN CHẾ
         st.subheader("3. Phân tích sai số và Nhận định")
         # Lấy top 20 luật có Lift cao nhất để Heatmap không bị quá dày đặc
         top_rules = rules_eval.sort_values(by='lift', ascending=False).head(20).copy()
@@ -254,8 +252,8 @@ elif page == " Đánh giá & Hiệu năng":
         ax3.set_ylabel('Sản phẩm khách mua (Antecedents)')
 
         st.pyplot(fig3)
-
         
+        # 3. PHÂN TÍCH SAI SỐ & HẠN CHẾ
         with st.expander("🔍 Tại sao mô hình có thể dự báo chưa tối ưu?", expanded=True):
             st.write("""
             - **Trường hợp sai số:** Mô hình thường đưa ra các gợi ý có Confidence thấp (dưới 20%). 
