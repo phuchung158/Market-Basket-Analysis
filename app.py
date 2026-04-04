@@ -42,7 +42,7 @@ if page == "Trang 1: Giới thiệu & EDA":
     # 1. Thông tin bắt buộc
     with st.container(border=True):
         st.subheader("📝 Thông tin thực hiện")
-        st.write("**Tên đề tài:** Phân tích hành vi mua sắm khách hàng và gợi ý sản phẩm dựa trên thuật toán FP-Growth")
+        st.write("**Tên đề tài:** Phân tích hành vi mua sắm và gợi ý sản phẩm dựa trên thuật toán FP-Growth nhằm nâng cao hiệu quả kinh doanh")
         st.write("**Họ tên SV:** Hà Thúc Phúc Hưng")
         st.write("**MSV:** 22T1020618")
         
