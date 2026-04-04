@@ -58,12 +58,12 @@ if page == " Giới thiệu & EDA":
     m2.metric("Số lượng sản phẩm", f"{df['itemDescription'].nunique()}")
     m3.metric("Số lượng giao dịch", f"{len(transactions):,}")
 
-    # 3. Hiển thị dữ liệu thô (CHỈ 10 DÒNG THEO YÊU CẦU)
+    # 3. Hiển thị dữ liệu thô 
     st.subheader("🔍 1. Khám phá dữ liệu thô")
     st.write("Mẫu 10 dòng giao dịch đầu tiên trong tập dữ liệu:")
     st.dataframe(df.head(10), use_container_width=True) # Đã chỉnh về 10 dòng
 
-    # 4. BẢNG THỐNG KÊ SẢN PHẨM (CÓ TÌNH NĂNG TÌM KIẾM)
+    # 4. BẢNG THỐNG KÊ SẢN PHẨM 
     st.subheader("📦 2. Danh mục sản phẩm & Tra cứu số lượng")
     st.write("Sử dụng biểu tượng 🔍 ở góc trên bên phải bảng để tìm kiếm nhanh tên sản phẩm:")
     
@@ -133,7 +133,7 @@ elif page == " Triển khai dự báo":
             model_rules = pickle.load(f)
         st.sidebar.success("✅ Đã kết nối với mô hình thành công!")
     except FileNotFoundError:
-        st.sidebar.error("❌ Lỗi: Không tìm thấy file 'models/trained_model.pkl'. Hãy chạy file huấn luyện trước!")
+        st.sidebar.error("❌ Lỗi: Không tìm thấy file 'models/file.pkl'. Hãy chạy file huấn luyện trước!")
         st.stop() # Dừng ứng dụng nếu không có mô hình
 
     # 2. THIẾT KẾ GIAO DIỆN NHẬP LIỆU (Sử dụng đa dạng Widget)
@@ -202,7 +202,7 @@ elif page == " Đánh giá & Hiệu năng":
     st.title("📊 Đánh giá & Hiệu năng Mô hình")
     st.markdown("---")
 
-    # 1. CÁC CHỈ SỐ ĐO LƯỜNG ĐẶC THÙ (Thay cho Accuracy/RMSE)
+    # 1. CÁC CHỈ SỐ ĐO LƯỜNG ĐẶC THÙ 
     st.subheader("1. Các chỉ số đo lường chất lượng luật")
     
     try:
