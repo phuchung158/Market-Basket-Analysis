@@ -36,7 +36,7 @@ page = st.sidebar.radio("Chọn trang hiển thị:",
      " Đánh giá & Hiệu năng"])
 
 # --- GIỚI THIỆU & KHÁM PHÁ DỮ LIỆU (EDA) ---
-if page == "Trang 1: Giới thiệu & EDA":
+if page == " Giới thiệu & EDA":
     st.title("🛒 Phân tích hành vi mua sắm khách hàng")
     
     # 1. Thông tin bắt buộc
@@ -122,7 +122,7 @@ if page == "Trang 1: Giới thiệu & EDA":
         """)
 
 # --- TRIỂN KHAI MÔ HÌNH ---
-elif page == "Trang 2: Triển khai dự báo":
+elif page == " Triển khai dự báo":
     st.title("🎯 Triển khai Mô hình Dự báo Mua sắm")
     st.markdown("---")
 
@@ -198,7 +198,7 @@ elif page == "Trang 2: Triển khai dự báo":
             else:
                 st.warning("Không tìm thấy gợi ý phù hợp.")
 # --- ĐÁNH GIÁ & HIỆU NĂNG (EVALUATION) ---
-elif page == "Trang 3: Đánh giá & Hiệu năng":
+elif page == " Đánh giá & Hiệu năng":
     st.title("📊 Đánh giá & Hiệu năng Mô hình")
     st.markdown("---")
 
