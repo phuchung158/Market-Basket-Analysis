@@ -209,13 +209,13 @@ elif page == " Đánh giá & Hiệu năng":
         with open('models/file.pkl', 'rb') as f:
             rules_eval = pickle.load(f)
         
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Tổng số luật tìm được", f"{len(rules_eval)}")
-        c2.metric("Độ tin cậy TB (Confidence)", f"{rules_eval['confidence'].mean():.2%}")
-        c3.metric("Độ tương quan TB (Lift)", f"{rules_eval['lift'].mean():.2f}")
+        col_m1, col_m2, col_m3 = st.columns(3)
+        col_m1.metric("Tổng số luật tìm được", f"{len(rules_eval)}")
+        col_m2.metric("Độ tin cậy TB (Confidence)", f"{rules_eval['confidence'].mean():.2%}")
+        col_m3.metric("Độ tương quan TB (Lift)", f"{rules_eval['lift'].mean():.2f}")
         c4, c5 = st.columns(2)
-        c4.metric("Độ tin cậy cao nhất", f"{rules_eval['confidence'].max():.2%}")
-        c5.metric("Số luật có Lift > 2.0", f"{len(rules_eval[rules_eval['lift'] > 2])}")
+        col_m1.metric("Độ tin cậy cao nhất", f"{rules_eval['confidence'].max():.2%}")
+        col_m2.metric("Số luật có Lift > 2.0", f"{len(rules_eval[rules_eval['lift'] > 2])}")
         st.info("""
         **Giải thích chỉ số:**
         - **Support (Độ hỗ trợ):** Tần suất xuất hiện của cặp sản phẩm trong toàn bộ dữ liệu.
