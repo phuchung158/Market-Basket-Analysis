@@ -213,7 +213,9 @@ elif page == " Đánh giá & Hiệu năng":
         c1.metric("Tổng số luật tìm được", f"{len(rules_eval)}")
         c2.metric("Độ tin cậy TB (Confidence)", f"{rules_eval['confidence'].mean():.2%}")
         c3.metric("Độ tương quan TB (Lift)", f"{rules_eval['lift'].mean():.2f}")
-
+        c4, c5 = st.columns(2)
+        c4.metric("Độ tin cậy cao nhất", f"{rules_eval['confidence'].max():.2%}")
+        c5.metric("Số luật có Lift > 2.0", f"{len(rules_eval[rules_eval['lift'] > 2])}")
         st.info("""
         **Giải thích chỉ số:**
         - **Support (Độ hỗ trợ):** Tần suất xuất hiện của cặp sản phẩm trong toàn bộ dữ liệu.
