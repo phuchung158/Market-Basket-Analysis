@@ -49,7 +49,7 @@ if page == " Giới thiệu & EDA":
     # 2. Giá trị thực tiễn
     st.subheader("💡 Giá trị thực tiễn")
     st.info("""Giải pháp này giúp các nhà quản lý bán lẻ hiểu rõ mối liên kết giữa các sản phẩm. 
-    Từ đó có thể chủ động gợi ý sản phẩm đi kèm. Khi khách hàng mua món A, hệ thống sẽ tự động "nhắc" món B, từ đó tăng kích thước giỏ hàng và doanh thu trên mỗi hóa đơn..""")
+    Từ đó có thể chủ động gợi ý sản phẩm đi kèm. Khi khách hàng mua món A, hệ thống sẽ tự động "nhắc" món B, từ đó tăng kích thước giỏ hàng và doanh thu trên mỗi hóa đơn.""")
 
     # --- CÁC CHỈ SỐ TỔNG QUAN ---
     st.subheader("📊 Tổng quan bộ dữ liệu")
