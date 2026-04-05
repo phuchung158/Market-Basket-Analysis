@@ -94,9 +94,17 @@ if page == " Giới thiệu & EDA":
         - Bộ dữ liệu này có **3 đặc trưng chính**: `Member_number` (Mã khách hàng), `Date` (Ngày giao dịch) và `itemDescription` (Tên sản phẩm).
         - Trong bài toán khai phá luật kết hợp, **`itemDescription`** là đặc trưng quan trọng nhất vì nó chứa thông tin về hành vi mua sắm. 
         - Hai đặc trưng còn lại đóng vai trò là "khóa" để gom nhóm các sản phẩm vào cùng một giỏ hàng (Transaction).
+
+        --
+
+        
         **2. Về độ lệch của dữ liệu (Data Skewness):**
         - Dữ liệu có hiện tượng **lệch rất mạnh** về phía các mặt hàng nhu yếu phẩm. Ví dụ: *Whole milk* xuất hiện nhiều gấp 10-20 lần các mặt hàng ngách như *Specialty chocolate* hay *Frozen chicken*.
         - **Ảnh hưởng:** Độ lệch này khiến các quy luật liên quan đến Sữa hoặc Rau củ sẽ có độ hỗ trợ (Support) rất cao, trong khi các quy luật thú vị ở các mặt hàng khác dễ bị bỏ qua nếu ta đặt ngưỡng Support quá lớn
+
+        --
+
+        
         **3. Cấu trúc giỏ hàng:**
         - Với tổng cộng **{df['itemDescription'].nunique()}** loại sản phẩm nhưng trung bình mỗi hóa đơn chỉ có **2-5 món**, tập dữ liệu này được đánh giá là "Dữ liệu thưa" (Sparse Data). 
         - Điều này giải thích tại sao chúng ta cần sử dụng thuật toán mạnh như **FP-Growth** để xử lý hiệu quả hơn so với Apriori truyền thống.
