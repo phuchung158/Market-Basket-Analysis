@@ -205,9 +205,10 @@ elif page == " Đánh giá & Hiệu năng":
         st.subheader("🚀 Hướng cải thiện & Phát triển")
         
         with st.container(border=True):
+            # Khai báo tên biến là col_im1 và col_im2
             col_im1, col_im2 = st.columns(2)
             
-            with col_m1:
+            with col_im1: # Sửa từ col_m1 thành col_im1
                 st.markdown("""
                 **1. Phân đoạn khách hàng (Customer Clustering):**
                 - Thay vì chạy thuật toán trên toàn bộ dữ liệu, có thể chia khách hàng thành các nhóm (Ví dụ: Nhóm nội trợ, nhóm mua sắm nhanh, nhóm đồ ngọt).
@@ -220,7 +221,7 @@ elif page == " Đánh giá & Hiệu năng":
                 - **Kết quả:** Gợi ý mang tính thời điểm cao (Ví dụ: Sáng mua bánh mì, tối mua bia).
                 """)
 
-            with col_m2:
+            with col_im2: # Sửa từ col_m2 thành col_im2
                 st.markdown("""
                 **3. Bổ sung hệ thống lọc cộng tác (Hybrid System):**
                 - Kết hợp FP-Growth với Collaborative Filtering (Dựa trên sự tương đồng giữa các khách hàng).
