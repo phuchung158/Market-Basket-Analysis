@@ -123,101 +123,130 @@ if page == " Giới thiệu & EDA":
         """)
 
 # --- TRIỂN KHAI MÔ HÌNH ---
-# 1. Cấu hình CSS (Giữ nguyên phong cách Food Association)
+# --- 1. CSS NÂNG CAO (Giao diện chuẩn UI/UX hiện đại) ---
 st.markdown("""
 <style>
-    .main { background-color: #f0f2f6; }
+    /* Nền tổng thể và font chữ */
+    .main { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
+    
+    /* Hiệu ứng Glassmorphism cho Card */
     .result-card {
-        background-color: white; padding: 20px; border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
-        border-top: 5px solid #4B0082;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: transform 0.3s ease;
+        margin-bottom: 20px;
     }
+    .result-card:hover { transform: translateY(-5px); }
+
+    /* Badge số thứ tự thiết kế lại */
     .badge {
-        background-color: #4B0082; color: white; padding: 5px 12px;
-        border-radius: 50%; font-weight: bold; margin-right: 10px;
+        background: linear-gradient(45deg, #4B0082, #8A2BE2);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
     }
-    .food-title { font-size: 20px; font-weight: bold; color: #333; display: inline; }
-    .metric-box {
-        background-color: #f8f9fa; padding: 10px; border-radius: 8px;
-        text-align: center; border: 1px solid #eee;
+
+    /* Tiêu đề sản phẩm */
+    .food-title {
+        color: #1a1a1a;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-left: 10px;
+    }
+
+    /* Ô chỉ số Metrics */
+    .metric-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        gap: 10px;
+    }
+    .metric-item {
+        background: #ffffff;
+        flex: 1;
+        padding: 12px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 2. GỌI MÔ HÌNH (Load model_rules từ file .pkl)
-try:
+# --- 2. LOAD MÔ HÌNH ---
+@st.cache_resource # Dùng cache để load mô hình nhanh hơn
+def load_model():
     with open('models/file.pkl', 'rb') as f:
-        model_rules = pickle.load(f)
-except FileNotFoundError:
-    st.error("❌ Không tìm thấy file models/file.pkl. Hãy huấn luyện mô hình trước!")
-    st.stop()
+        return pickle.load(f)
 
-# 3. SIDEBAR: Nhập liệu
+model_rules = load_model()
+
+# --- 3. SIDEBAR (Form nhập liệu) ---
 with st.sidebar:
-    st.title("🍴 Food Association")
-    st.subheader("🔍 Tìm Kiếm")
+    st.image("https://cdn-icons-png.flaticon.com/512/3081/3081840.png", width=80)
+    st.title("Hệ Thống Gợi Ý")
     
-    # Lấy danh sách sản phẩm từ antecedents trong mô hình
-    all_products = sorted(set([list(x)[0] for x in model_rules['antecedents']]))
-    selected_item = st.selectbox("Chọn món ăn:", all_products)
+    # Tính năng gõ để tìm: Lấy danh sách item từ mô hình
+    all_items = sorted(set([list(x)[0] for x in model_rules['antecedents']]))
     
-    num_rec = st.select_slider("Số lượng gợi ý:", options=[3, 5, 8, 10], value=5)
-    conf_threshold = st.slider("Ngưỡng tin cậy:", 0.01, 0.5, 0.05)
+    st.markdown("### 🛠 Cấu hình")
+    # Selectbox trong Streamlit mặc định cho phép gõ để tìm kiếm tên sản phẩm
+    selected_item = st.selectbox("🔍 Gõ tên sản phẩm:", all_items, help="Nhập tên sản phẩm để tìm nhanh")
     
-    predict_btn = st.button("🔍 Tìm gợi ý", use_container_width=True)
+    num_rec = st.number_input("🔢 Số lượng gợi ý:", 1, 10, 5)
+    conf_min = st.slider("🎯 Ngưỡng tin cậy:", 0.01, 0.50, 0.05)
+    
+    predict_btn = st.button("🚀 PHÂN TÍCH NGAY", use_container_width=True)
 
-# 4. NỘI DUNG CHÍNH: Xử lý logic gọi mô hình
+# --- 4. HIỂN THỊ KẾT QUẢ ---
 if predict_btn:
-    st.header("Kết Quả Gợi Ý")
+    st.subheader(f"✨ Gợi ý thông minh cho: {selected_item}")
     
-    # Logic lọc mô hình: Tìm các luật chứa sản phẩm đã chọn
+    # Xử lý logic lọc luật
     input_set = {selected_item}
     res = model_rules[model_rules['antecedents'].apply(lambda x: input_set.issubset(x))]
-    res = res[res['confidence'] >= conf_threshold]
+    res = res[res['confidence'] >= conf_min]
     
-    # Tiền xử lý kết quả
-    res['suggested_name'] = res['consequents'].apply(lambda x: list(x)[0])
-    results = res.sort_values(by='lift', ascending=False).drop_duplicates(subset=['suggested_name']).head(num_rec)
+    res['suggested'] = res['consequents'].apply(lambda x: list(x)[0])
+    results = res.sort_values(by='lift', ascending=False).drop_duplicates('suggested').head(num_rec)
 
     if not results.empty:
-        st.caption(f"Tìm thấy {len(results)} gợi ý cho '{selected_item}'")
-        
-        # Chia cột để hiển thị Card (2 cột mỗi hàng)
+        # Chia 2 cột để hiện Card cho cân đối
         for i in range(0, len(results), 2):
             cols = st.columns(2)
             for j in range(2):
                 if i + j < len(results):
                     row = results.iloc[i + j]
-                    name = row['suggested_name']
-                    conf = row['confidence']
-                    lift = row['lift']
-                    
                     with cols[j]:
                         st.markdown(f"""
                         <div class="result-card">
-                            <span class="badge">{i + j + 1}</span> <p class="food-title">{name}</p>
-                            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
-                                <div class="metric-box" style="width: 48%;">
-                                    <p style="font-size: 11px; color: #666; margin: 0;">📉 Độ tin cậy</p>
-                                    <p style="font-size: 16px; color: #28a745; font-weight: bold; margin: 0;">{conf:.1%}</p>
+                            <div>
+                                <span class="badge">#{i + j + 1}</span>
+                                <span class="food-title">{row['suggested'].upper()}</span>
+                            </div>
+                            <div class="metric-container">
+                                <div class="metric-item">
+                                    <p style="margin:0; font-size:10px; color:#666;">ĐỘ TIN CẬY</p>
+                                    <p style="margin:0; font-size:18px; color:#2ecc71; font-weight:bold;">{row['confidence']:.1%}</p>
                                 </div>
-                                <div class="metric-box" style="width: 48%;">
-                                    <p style="font-size: 11px; color: #666; margin: 0;">🚀 Liên quan (Lift)</p>
-                                    <p style="font-size: 16px; color: #007bff; font-weight: bold; margin: 0;">{lift:.2f}x</p>
+                                <div class="metric-item">
+                                    <p style="margin:0; font-size:10px; color:#666;">CHỈ SỐ LIFT</p>
+                                    <p style="margin:0; font-size:18px; color:#3498db; font-weight:bold;">{row['lift']:.2f}</p>
                                 </div>
                             </div>
-                            <p style="font-size: 12px; color: #555; margin-top: 15px; padding: 8px; background: #f1f3f5; border-radius: 5px;">
-                                Khách mua <b>{selected_item}</b> có <b>{conf:.1%}</b> khả năng mua thêm <b>{name}</b>.
+                            <p style="margin-top:15px; font-size:13px; color:#444; line-height:1.4;">
+                                💡 <i>Chiến lược:</i> Nên đặt <b>{row['suggested']}</b> cạnh <b>{selected_item}</b> để tối ưu doanh thu.
                             </p>
                         </div>
                         """, unsafe_allow_html=True)
         st.balloons()
     else:
-        st.warning(f"Không tìm thấy gợi ý nào cho '{selected_item}' với ngưỡng tin cậy này.")
-# --- ĐÁNH GIÁ & HIỆU NĂNG (EVALUATION) ---
-elif page == " Đánh giá & Hiệu năng":
-    st.title("📊 Đánh giá & Hiệu năng Mô hình")
-    st.markdown("---")
+        st.warning("Không tìm thấy quy luật nào phù hợp. Hãy thử giảm ngưỡng tin cậy!")
 
     # 1. CÁC CHỈ SỐ ĐO LƯỜNG ĐẶC THÙ 
     st.subheader("1. Các chỉ số đo lường chất lượng luật")
