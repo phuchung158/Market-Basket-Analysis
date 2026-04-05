@@ -200,10 +200,10 @@ elif page == " Đánh giá & Hiệu năng":
         ax.set_title('Tương quan giữa Support, Confidence và Lift')
         st.pyplot(fig)
 
-        # --- 3. BIỂU ĐỒ HEATMAP: Top 10-50 luật có Lift cao nhất ---
+        # --- 3. BIỂU ĐỒ HEATMAP: Top 10-20 luật có Lift cao nhất ---
         st.subheader("3. Heatmap: Mối tương quan giữa các cặp sản phẩm (Top Lift)")
 
-        top_rules = rules_eval.sort_values(by='lift', ascending=False).head(50).copy()
+        top_rules = rules_eval.sort_values(by='lift', ascending=False).head(20).copy()
 
         # Chuyển đổi frozenset sang string để hiển thị trên trục biểu đồ
         top_rules['antecedents_str'] = top_rules['antecedents'].apply(lambda x: ', '.join(list(x)))
