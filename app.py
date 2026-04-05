@@ -251,45 +251,8 @@ elif page == " Đánh giá & Hiệu năng":
         ax3.set_xlabel('Sản phẩm gợi ý (Consequents)')
         ax3.set_ylabel('Sản phẩm khách mua (Antecedents)')
         st.pyplot(fig3)
-        # --- 4. ĐỒ THỊ MẠNG LƯỚI (NETWORK GRAPH) ---
-        st.subheader("4. Đồ thị mạng lưới: Liên kết giữa các sản phẩm")
         
-        
-        # Chọn top 15-20 luật có Lift cao nhất để đồ thị rõ ràng, không bị rối
-        net_rules = rules_eval.nlargest(20, 'lift').copy()
-        
-        # Khởi tạo đồ thị có hướng (Directed Graph)
-        G = nx.DiGraph()
-        
-        for _, row in net_rules.iterrows():
-            # Chuyển frozenset sang string để làm nhãn cho node
-            ant = ', '.join(list(row['antecedents']))
-            con = ', '.join(list(row['consequents']))
-            
-            # Thêm cạnh nối từ Antecedent đến Consequent
-            # Trọng số (weight) tỉ lệ thuận với Lift để có thể tùy biến độ dày cạnh nếu muốn
-            G.add_edge(ant, con, weight=row['lift'])
-        
-        # Thiết lập bố cục đồ thị (Spring layout giúp các node tự dãn cách đều)
-        plt.figure(figsize=(12, 8))
-        pos = nx.spring_layout(G, k=1.0, seed=42) 
-        
-        # Vẽ các nút (Nodes)
-        nx.draw_networkx_nodes(G, pos, node_size=2500, node_color='orange', alpha=0.9)
-        
-        # Vẽ các cạnh (Edges/Arrows)
-        nx.draw_networkx_edges(G, pos, width=2, edge_color='gray', arrowsize=20)
-        
-        # Vẽ nhãn (Labels)
-        nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif', font_weight='bold')
-        
-        plt.title("Mạng lưới liên kết các sản phẩm có chỉ số tương quan cao", fontsize=15)
-        plt.axis('off') # Tắt trục tọa độ để đồ thị đẹp hơn
-        st.pyplot(plt)
-        
-        st.info("💡 Giải thích: Các mũi tên chỉ từ sản phẩm khách mua sang sản phẩm gợi ý. Những sản phẩm có nhiều mũi tên hướng đến hoặc đi qua là những mặt hàng đóng vai trò trung tâm trong hành vi mua sắm.")
-        
-        st.subheader("5. Phân tích sai số và Nhận định")
+        st.subheader("4. Phân tích sai số và Nhận định")
         # 3. PHÂN TÍCH SAI SỐ & HẠN CHẾ
         with st.expander("🔍 Tại sao mô hình có thể dự báo chưa tối ưu?", expanded=True):
             st.write("""
