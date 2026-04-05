@@ -201,12 +201,36 @@ elif page == " Đánh giá & Hiệu năng":
         ax3.set_title('Ma trận tương quan Lift giữa các cặp sản phẩm')
         st.pyplot(fig3)
 
-        # 4. HƯỚNG CẢI THIỆN
-        st.subheader("🚀 Hướng cải thiện")
-        st.success("""
-        1. **Phân đoạn khách hàng (Clustering):** Chia khách hàng thành các nhóm (Ví dụ: Nhóm thích đồ ngọt, nhóm nội trợ) trước khi chạy FP-Growth để có luật chính xác hơn cho từng nhóm.
-        2. **Bổ sung biến thời gian:** Phân tích theo mùa (Tết mua gì, Hè mua gì) để gợi ý mang tính thời điểm cao hơn.
-        3. **Dữ liệu lớn hơn:** Thu thập thêm lịch sử giao dịch để tăng độ tin cậy cho các mặt hàng ít phổ biến.
-        """)
+       # --- 4. HƯỚNG CẢI THIỆN (PHẦN QUAN TRỌNG ĐỂ GHI ĐIỂM) ---
+        st.subheader("🚀 Hướng cải thiện & Phát triển")
+        
+        with st.container(border=True):
+            col_im1, col_im2 = st.columns(2)
+            
+            with col_m1:
+                st.markdown("""
+                **1. Phân đoạn khách hàng (Customer Clustering):**
+                - Thay vì chạy thuật toán trên toàn bộ dữ liệu, có thể chia khách hàng thành các nhóm (Ví dụ: Nhóm nội trợ, nhóm mua sắm nhanh, nhóm đồ ngọt).
+                - **Kết quả:** Tìm ra các luật kết hợp đặc thù và chính xác hơn cho từng đối tượng.
+                """)
+                
+                st.markdown("""
+                **2. Tối ưu hóa theo thời gian (Temporal Analysis):**
+                - Phân tích hành vi theo mùa, thứ trong tuần hoặc khung giờ trong ngày.
+                - **Kết quả:** Gợi ý mang tính thời điểm cao (Ví dụ: Sáng mua bánh mì, tối mua bia).
+                """)
+
+            with col_m2:
+                st.markdown("""
+                **3. Bổ sung hệ thống lọc cộng tác (Hybrid System):**
+                - Kết hợp FP-Growth với Collaborative Filtering (Dựa trên sự tương đồng giữa các khách hàng).
+                - **Kết quả:** Tăng độ bao phủ của gợi ý, giảm bớt sự thống trị của các mặt hàng quá phổ biến.
+                """)
+                
+                st.markdown("""
+                **4. Làm sạch dữ liệu sâu hơn:**
+                - Gom nhóm các sản phẩm tương tự (Ví dụ: Các loại sữa tươi khác nhau gom thành một nhóm 'Milk').
+                - **Kết quả:** Giảm độ thưa của dữ liệu, giúp tăng đáng kể chỉ số Confidence cho các luật.
+                """)
     except FileNotFoundError:
         st.error("⚠️ Vui lòng chạy huấn luyện mô hình để có dữ liệu đánh giá!")
