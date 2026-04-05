@@ -123,85 +123,157 @@ if page == " Giới thiệu & EDA":
         """)
 
 # --- TRIỂN KHAI MÔ HÌNH ---
-# --- 1. CSS NÂNG CAO (Giao diện chuẩn UI/UX hiện đại) ---
-st.markdown("""
-<style>
-    /* Nền tổng thể và font chữ */
-    .main { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
+# --- TRIỂN KHAI MÔ HÌNH ---
+
+elif page == " Triển khai dự báo":
+
+    st.title("🎯 Triển khai Mô hình Dự báo Mua sắm")
+
+    st.markdown("---")
+
+
+
+    # 1. XỬ LÝ LOGIC: LOAD MÔ HÌNH ĐÃ HUẤN LUYỆN
+
+    # Đảm bảo bạn đã có thư mục models/ và file trained_model.pkl trong đó
+
+    try:
+
+        with open('models/file.pkl', 'rb') as f:
+
+            model_rules = pickle.load(f)
+
+        st.sidebar.success("✅ Đã kết nối với mô hình thành công!")
+
+    except FileNotFoundError:
+
+        st.sidebar.error("❌ Lỗi: Không tìm thấy file 'models/file.pkl'. Hãy chạy file huấn luyện trước!")
+
+        st.stop() # Dừng ứng dụng nếu không có mô hình
+
+
+
+    # 2. THIẾT KẾ GIAO DIỆN NHẬP LIỆU (Sử dụng đa dạng Widget)
+
+    st.subheader("📝 Nhập thông tin giao dịch")
+
     
-    /* Hiệu ứng Glassmorphism cho Card */
-    .result-card {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        padding: 25px;
-        border-radius: 20px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        transition: transform 0.3s ease;
-        margin-bottom: 20px;
-    }
-    .result-card:hover { transform: translateY(-5px); }
 
-    /* Badge số thứ tự thiết kế lại */
-    .badge {
-        background: linear-gradient(45deg, #4B0082, #8A2BE2);
-        color: white;
-        padding: 6px 14px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
+    with st.container(border=True):
 
-    /* Tiêu đề sản phẩm */
-    .food-title {
-        color: #1a1a1a;
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-left: 10px;
-    }
+        col1, col2 = st.columns(2)
 
-    /* Ô chỉ số Metrics */
-    .metric-container {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-        gap: 10px;
-    }
-    .metric-item {
-        background: #ffffff;
-        flex: 1;
-        padding: 12px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
-    }
-</style>
-""", unsafe_allow_html=True)
+        
 
-# --- 2. LOAD MÔ HÌNH ---
-@st.cache_resource # Dùng cache để load mô hình nhanh hơn
-def load_model():
-    with open('models/file.pkl', 'rb') as f:
-        return pickle.load(f)
+        with col1:
 
-model_rules = load_model()
+            # Widget selectbox: Chọn sản phẩm (Danh mục)
 
-# --- 3. SIDEBAR (Form nhập liệu) ---
-with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/3081/3081840.png", width=80)
-    st.title("Hệ Thống Gợi Ý")
+            all_products = sorted(df['itemDescription'].unique())
+
+            selected_item = st.selectbox("🛍️ Chọn sản phẩm khách đang cầm trên tay:", all_products)
+
+            
+
+            # Widget number_input: Số lượng gợi ý (Số)
+
+            num_rec = st.number_input("🔢 Số lượng sản phẩm muốn gợi ý thêm:", min_value=1, max_value=5, value=2)
+
+
+
+        with col2:
+
+            # Widget slider: Ngưỡng tin cậy (Xác suất)
+
+            conf_threshold = st.slider("🎯 Ngưỡng tin cậy tối thiểu (Confidence):", 0.01, 0.50, 0.05)
+
+            
+
+            # Widget text_input: Thông tin khách hàng (Văn bản)
+
+            customer_name = st.text_input("👤 Tên khách hàng hoặc Mã thẻ:", "Khách hàng thân thiết")
+
+
+
+    # 3. XỬ LÝ LOGIC DỰ BÁO & TIỀN XỬ LÝ
+
+    st.markdown("### 🚀 Kết quả phân tích hành vi")
+
     
-    # Tính năng gõ để tìm: Lấy danh sách item từ mô hình
-    all_items = sorted(set([list(x)[0] for x in model_rules['antecedents']]))
-    
-    st.markdown("### 🛠 Cấu hình")
-    # Selectbox trong Streamlit mặc định cho phép gõ để tìm kiếm tên sản phẩm
-    selected_item = st.selectbox("🔍 Gõ tên sản phẩm:", all_items, help="Nhập tên sản phẩm để tìm nhanh")
-    
-    num_rec = st.number_input("🔢 Số lượng gợi ý:", 1, 10, 5)
-    conf_min = st.slider("🎯 Ngưỡng tin cậy:", 0.01, 0.50, 0.05)
-    
-    predict_btn = st.button("🚀 PHÂN TÍCH NGAY", use_container_width=True)
+
+    if st.button("Thực hiện dự báo ngay"):
+
+        with st.spinner('Mô hình đang tính toán...'):
+
+            # 1. Lọc luật dựa trên sản phẩm đã chọn
+
+            input_set = {selected_item}
+
+            res = model_rules[model_rules['antecedents'].apply(lambda x: input_set.issubset(x))]
+
+            res = res[res['confidence'] >= conf_threshold]
+
+
+
+            # 2. TIỀN XỬ LÝ: Loại bỏ các gợi ý trùng tên sản phẩm (Chỉ giữ lại cái tốt nhất)
+
+            # Chúng ta sẽ biến đổi cột consequents từ frozenset sang string để dễ lọc
+
+            res['suggested_name'] = res['consequents'].apply(lambda x: list(x)[0])
+
+            res = res.sort_values(by='lift', ascending=False).drop_duplicates(subset=['suggested_name'])
+
+            
+
+            # Lấy số lượng theo yêu cầu của người dùng
+
+            results = res.head(num_rec)
+
+
+
+            if not results.empty:
+
+                st.write(f"Hệ thống đề xuất cho **{customer_name}**:")
+
+                
+
+                # 3. HIỂN THỊ (Sử dụng đúng biến index i)
+
+                for i in range(len(results)):
+
+                    # Lấy dữ liệu của hàng hiện tại trong vòng lặp
+
+                    current_row = results.iloc[i]
+
+                    suggested_item = current_row['suggested_name']
+
+                    confidence_val = current_row['confidence']
+
+                    lift_val = current_row['lift']
+
+                    
+
+                    with st.expander(f"🌟 Gợi ý {i+1}: {suggested_item}", expanded=True):
+
+                        col_result_1, col_result_2 = st.columns(2)
+
+                        with col_result_1:
+
+                            st.write(f"📦 Sản phẩm: **{suggested_item}**")
+
+                            st.write(f"🔗 Độ liên quan (Lift): {lift_val:.2f}")
+
+                        with col_result_2:
+
+                            st.metric("Độ tin cậy", f"{confidence_val:.2%}")
+
+                            st.progress(confidence_val)
+
+                st.balloons()
+
+            else:
+
+                st.warning("Không tìm thấy gợi ý phù hợp.")
 
 # --- 4. HIỂN THỊ KẾT QUẢ ---
 if predict_btn:
