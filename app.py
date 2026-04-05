@@ -123,81 +123,97 @@ if page == " Giới thiệu & EDA":
         """)
 
 # --- TRIỂN KHAI MÔ HÌNH ---
-elif page == " Triển khai dự báo":
-    st.title("🎯 Triển khai Mô hình Dự báo Mua sắm")
-    st.markdown("---")
+# 1. Cấu hình CSS (Giữ nguyên phong cách Food Association)
+st.markdown("""
+<style>
+    .main { background-color: #f0f2f6; }
+    .result-card {
+        background-color: white; padding: 20px; border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
+        border-top: 5px solid #4B0082;
+    }
+    .badge {
+        background-color: #4B0082; color: white; padding: 5px 12px;
+        border-radius: 50%; font-weight: bold; margin-right: 10px;
+    }
+    .food-title { font-size: 20px; font-weight: bold; color: #333; display: inline; }
+    .metric-box {
+        background-color: #f8f9fa; padding: 10px; border-radius: 8px;
+        text-align: center; border: 1px solid #eee;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-    # 1. XỬ LÝ LOGIC: LOAD MÔ HÌNH ĐÃ HUẤN LUYỆN
-    # Đảm bảo bạn đã có thư mục models/ và file trained_model.pkl trong đó
-    try:
-        with open('models/file.pkl', 'rb') as f:
-            model_rules = pickle.load(f)
-        st.sidebar.success("✅ Đã kết nối với mô hình thành công!")
-    except FileNotFoundError:
-        st.sidebar.error("❌ Lỗi: Không tìm thấy file 'models/file.pkl'. Hãy chạy file huấn luyện trước!")
-        st.stop() # Dừng ứng dụng nếu không có mô hình
+# 2. GỌI MÔ HÌNH (Load model_rules từ file .pkl)
+try:
+    with open('models/file.pkl', 'rb') as f:
+        model_rules = pickle.load(f)
+except FileNotFoundError:
+    st.error("❌ Không tìm thấy file models/file.pkl. Hãy huấn luyện mô hình trước!")
+    st.stop()
 
-    # 2. THIẾT KẾ GIAO DIỆN NHẬP LIỆU (Sử dụng đa dạng Widget)
-    st.subheader("📝 Nhập thông tin giao dịch")
+# 3. SIDEBAR: Nhập liệu
+with st.sidebar:
+    st.title("🍴 Food Association")
+    st.subheader("🔍 Tìm Kiếm")
     
-    with st.container(border=True):
-        col1, col2 = st.columns(2)
+    # Lấy danh sách sản phẩm từ antecedents trong mô hình
+    all_products = sorted(set([list(x)[0] for x in model_rules['antecedents']]))
+    selected_item = st.selectbox("Chọn món ăn:", all_products)
+    
+    num_rec = st.select_slider("Số lượng gợi ý:", options=[3, 5, 8, 10], value=5)
+    conf_threshold = st.slider("Ngưỡng tin cậy:", 0.01, 0.5, 0.05)
+    
+    predict_btn = st.button("🔍 Tìm gợi ý", use_container_width=True)
+
+# 4. NỘI DUNG CHÍNH: Xử lý logic gọi mô hình
+if predict_btn:
+    st.header("Kết Quả Gợi Ý")
+    
+    # Logic lọc mô hình: Tìm các luật chứa sản phẩm đã chọn
+    input_set = {selected_item}
+    res = model_rules[model_rules['antecedents'].apply(lambda x: input_set.issubset(x))]
+    res = res[res['confidence'] >= conf_threshold]
+    
+    # Tiền xử lý kết quả
+    res['suggested_name'] = res['consequents'].apply(lambda x: list(x)[0])
+    results = res.sort_values(by='lift', ascending=False).drop_duplicates(subset=['suggested_name']).head(num_rec)
+
+    if not results.empty:
+        st.caption(f"Tìm thấy {len(results)} gợi ý cho '{selected_item}'")
         
-        with col1:
-            # Widget selectbox: Chọn sản phẩm (Danh mục)
-            all_products = sorted(df['itemDescription'].unique())
-            selected_item = st.selectbox("🛍️ Chọn sản phẩm khách đang cầm trên tay:", all_products)
-            
-            # Widget number_input: Số lượng gợi ý (Số)
-            num_rec = st.number_input("🔢 Số lượng sản phẩm muốn gợi ý thêm:", min_value=1, max_value=5, value=2)
-
-        with col2:
-            # Widget slider: Ngưỡng tin cậy (Xác suất)
-            conf_threshold = st.slider("🎯 Ngưỡng tin cậy tối thiểu (Confidence):", 0.01, 0.50, 0.05)
-            
-            # Widget text_input: Thông tin khách hàng (Văn bản)
-            customer_name = st.text_input("👤 Tên khách hàng hoặc Mã thẻ:", "Khách hàng thân thiết")
-
-    # 3. XỬ LÝ LOGIC DỰ BÁO & TIỀN XỬ LÝ
-    st.markdown("### 🚀 Kết quả phân tích hành vi")
-    
-    if st.button("Thực hiện dự báo ngay"):
-        with st.spinner('Mô hình đang tính toán...'):
-            # 1. Lọc luật dựa trên sản phẩm đã chọn
-            input_set = {selected_item}
-            res = model_rules[model_rules['antecedents'].apply(lambda x: input_set.issubset(x))]
-            res = res[res['confidence'] >= conf_threshold]
-
-            # 2. TIỀN XỬ LÝ: Loại bỏ các gợi ý trùng tên sản phẩm (Chỉ giữ lại cái tốt nhất)
-            # Chúng ta sẽ biến đổi cột consequents từ frozenset sang string để dễ lọc
-            res['suggested_name'] = res['consequents'].apply(lambda x: list(x)[0])
-            res = res.sort_values(by='lift', ascending=False).drop_duplicates(subset=['suggested_name'])
-            
-            # Lấy số lượng theo yêu cầu của người dùng
-            results = res.head(num_rec)
-
-            if not results.empty:
-                st.write(f"Hệ thống đề xuất cho **{customer_name}**:")
-                
-                # 3. HIỂN THỊ (Sử dụng đúng biến index i)
-                for i in range(len(results)):
-                    # Lấy dữ liệu của hàng hiện tại trong vòng lặp
-                    current_row = results.iloc[i]
-                    suggested_item = current_row['suggested_name']
-                    confidence_val = current_row['confidence']
-                    lift_val = current_row['lift']
+        # Chia cột để hiển thị Card (2 cột mỗi hàng)
+        for i in range(0, len(results), 2):
+            cols = st.columns(2)
+            for j in range(2):
+                if i + j < len(results):
+                    row = results.iloc[i + j]
+                    name = row['suggested_name']
+                    conf = row['confidence']
+                    lift = row['lift']
                     
-                    with st.expander(f"🌟 Gợi ý {i+1}: {suggested_item}", expanded=True):
-                        col_result_1, col_result_2 = st.columns(2)
-                        with col_result_1:
-                            st.write(f"📦 Sản phẩm: **{suggested_item}**")
-                            st.write(f"🔗 Độ liên quan (Lift): {lift_val:.2f}")
-                        with col_result_2:
-                            st.metric("Độ tin cậy", f"{confidence_val:.2%}")
-                            st.progress(confidence_val)
-                st.balloons()
-            else:
-                st.warning("Không tìm thấy gợi ý phù hợp.")
+                    with cols[j]:
+                        st.markdown(f"""
+                        <div class="result-card">
+                            <span class="badge">{i + j + 1}</span> <p class="food-title">{name}</p>
+                            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                                <div class="metric-box" style="width: 48%;">
+                                    <p style="font-size: 11px; color: #666; margin: 0;">📉 Độ tin cậy</p>
+                                    <p style="font-size: 16px; color: #28a745; font-weight: bold; margin: 0;">{conf:.1%}</p>
+                                </div>
+                                <div class="metric-box" style="width: 48%;">
+                                    <p style="font-size: 11px; color: #666; margin: 0;">🚀 Liên quan (Lift)</p>
+                                    <p style="font-size: 16px; color: #007bff; font-weight: bold; margin: 0;">{lift:.2f}x</p>
+                                </div>
+                            </div>
+                            <p style="font-size: 12px; color: #555; margin-top: 15px; padding: 8px; background: #f1f3f5; border-radius: 5px;">
+                                Khách mua <b>{selected_item}</b> có <b>{conf:.1%}</b> khả năng mua thêm <b>{name}</b>.
+                            </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+        st.balloons()
+    else:
+        st.warning(f"Không tìm thấy gợi ý nào cho '{selected_item}' với ngưỡng tin cậy này.")
 # --- ĐÁNH GIÁ & HIỆU NĂNG (EVALUATION) ---
 elif page == " Đánh giá & Hiệu năng":
     st.title("📊 Đánh giá & Hiệu năng Mô hình")
