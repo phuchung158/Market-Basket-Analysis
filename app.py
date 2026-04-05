@@ -161,16 +161,19 @@ elif page == " Đánh giá & Hiệu năng":
             rules_eval = pickle.load(f)
         
         # 1. HIỂN THỊ CÁC CHỈ SỐ DASHBOARD (Khớp với báo cáo của bạn)
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Tổng số luật tìm được", "936") #
-        col2.metric("Độ tin cậy TB (Confidence)", "5.08%") #
-        col3.metric("Độ tương quan TB (Lift)", "1.28") #
+        # Tạo 3 cột để các chỉ số thẳng hàng nhau
+        col_m1, col_m2, col_m3 = st.columns(3)
+    
+        # Hàng 1
+        col_m1.metric("Tổng số luật tìm được", f"{len(rules_eval)}")
+        col_m2.metric("Độ tin cậy TB (Confidence)", f"{rules_eval['confidence'].mean():.2%}")
+        col_m3.metric("Độ tương quan TB (Lift)", f"{rules_eval['lift'].mean():.2f}")
 
-        col4, col5 = st.columns(2)
-        with col4:
-            st.metric("Độ tin cậy cao nhất", "39.13%") #
-        with col5:
-            st.metric("Số luật có Lift > 2.0", "26") #
+        # Hàng 2 (Dùng lại các cột cũ để thẳng hàng)
+        col_m1.metric("Độ tin cậy cao nhất", f"{rules_eval['confidence'].max():.2%}")
+        col_m2.metric("Số luật có Lift > 2.0", f"{len(rules_eval[rules_eval['lift'] > 2])}")
+        # col_m3 có thể để trống hoặc thêm một chỉ số khác nếu muốn
+        st.metric("Số luật có Lift > 2.0", "26") #
 
         st.divider()
 
@@ -201,21 +204,11 @@ elif page == " Đánh giá & Hiệu năng":
         st.pyplot(fig3)
 
         # 4. HƯỚNG CẢI THIỆN
-
         st.subheader("🚀 Hướng cải thiện")
-
         st.success("""
-
         1. **Phân đoạn khách hàng (Clustering):** Chia khách hàng thành các nhóm (Ví dụ: Nhóm thích đồ ngọt, nhóm nội trợ) trước khi chạy FP-Growth để có luật chính xác hơn cho từng nhóm.
-
         2. **Bổ sung biến thời gian:** Phân tích theo mùa (Tết mua gì, Hè mua gì) để gợi ý mang tính thời điểm cao hơn.
-
         3. **Dữ liệu lớn hơn:** Thu thập thêm lịch sử giao dịch để tăng độ tin cậy cho các mặt hàng ít phổ biến.
-
         """)
-
-
-
     except FileNotFoundError:
-
         st.error("⚠️ Vui lòng chạy huấn luyện mô hình để có dữ liệu đánh giá!")
