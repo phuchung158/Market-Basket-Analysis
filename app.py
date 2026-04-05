@@ -173,8 +173,6 @@ elif page == " Đánh giá & Hiệu năng":
         col_m1.metric("Độ tin cậy cao nhất", f"{rules_eval['confidence'].max():.2%}")
         col_m2.metric("Số luật có Lift > 2.0", f"{len(rules_eval[rules_eval['lift'] > 2])}")
         # col_m3 có thể để trống hoặc thêm một chỉ số khác nếu muốn
-        st.metric("Số luật có Lift > 2.0", "26") #
-
         st.divider()
 
         # 2. BIỂU ĐỒ SCATTER PLOT
