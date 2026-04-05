@@ -200,13 +200,22 @@ elif page == " Đánh giá & Hiệu năng":
         ax3.set_title('Ma trận tương quan Lift giữa các cặp sản phẩm')
         st.pyplot(fig3)
 
-        # 4. ĐÁNH GIÁ GIÁ TRỊ THỰC TIỄN
-        st.subheader("💎 Đánh giá giá trị thực tiễn")
+        # 4. HƯỚNG CẢI THIỆN
+
+        st.subheader("🚀 Hướng cải thiện")
+
         st.success("""
-        - **Tính tối ưu:** Thuật toán xử lý hơn **38,000 giao dịch** trong thời gian **dưới 1 giây**, chứng minh cấu trúc FP-Tree cực kỳ hiệu quả.
-        - **Giá trị mang lại:** Giúp tối ưu hóa trưng bày hàng hóa (Cross-selling) và xây dựng hệ thống gợi ý tự động.
+
+        1. **Phân đoạn khách hàng (Clustering):** Chia khách hàng thành các nhóm (Ví dụ: Nhóm thích đồ ngọt, nhóm nội trợ) trước khi chạy FP-Growth để có luật chính xác hơn cho từng nhóm.
+
+        2. **Bổ sung biến thời gian:** Phân tích theo mùa (Tết mua gì, Hè mua gì) để gợi ý mang tính thời điểm cao hơn.
+
+        3. **Dữ liệu lớn hơn:** Thu thập thêm lịch sử giao dịch để tăng độ tin cậy cho các mặt hàng ít phổ biến.
+
         """)
 
-    except Exception as e:
-        st.error(f"Đã xảy ra lỗi: {e}")
-        st.warning("Đảm bảo file 'models/file.pkl' tồn tại và hợp lệ.")
+
+
+    except FileNotFoundError:
+
+        st.error("⚠️ Vui lòng chạy huấn luyện mô hình để có dữ liệu đánh giá!")
