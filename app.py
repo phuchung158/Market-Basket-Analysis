@@ -172,7 +172,7 @@ elif page == " Đánh giá & Hiệu năng":
     try:
         with open('models/file.pkl', 'rb') as f:
             rules_eval = pickle.load(f)
-col_m1, col_m2, col_m3 = st.columns(3)
+        col_m1, col_m2, col_m3 = st.columns(3)
 
         # Hàng 1
         col_m1.metric("Tổng số luật tìm được", f"{len(rules_eval)}")
@@ -182,7 +182,7 @@ col_m1, col_m2, col_m3 = st.columns(3)
         # Hàng 2 (Dùng lại các cột cũ để thẳng hàng)
         col_m1.metric("Độ tin cậy cao nhất", f"{rules_eval['confidence'].max():.2%}")
         col_m2.metric("Số luật có Lift > 2.0", f"{len(rules_eval[rules_eval['lift'] > 2])}")
-    # col_m3 có thể để trống hoặc thêm một chỉ số khác nếu muốn
+        # col_m3 có thể để trống hoặc thêm một chỉ số khác nếu muốn
         st.info("""
         **Giải thích chỉ số:**
         - **Support (Độ hỗ trợ):** Tần suất xuất hiện của cặp sản phẩm trong toàn bộ dữ liệu.
