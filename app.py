@@ -123,105 +123,157 @@ if page == " Giới thiệu & EDA":
         """)
 
 # --- TRIỂN KHAI MÔ HÌNH ---
+# --- TRIỂN KHAI MÔ HÌNH ---
+
 elif page == " Triển khai dự báo":
-    # --- 1. CSS NÂNG CAO (Giao diện Modern Glassmorphism) ---
-    st.markdown("""
-    <style>
-        .main { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
-        .result-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            margin-bottom: 20px;
-        }
-        .badge {
-            background: linear-gradient(45deg, #4B0082, #8A2BE2);
-            color: white; padding: 6px 14px; border-radius: 12px;
-            font-size: 0.8rem; font-weight: bold;
-        }
-        .food-title { color: #1a1a1a; font-size: 1.2rem; font-weight: 700; margin-left: 10px; }
-        .metric-container { display: flex; justify-content: space-between; margin-top: 20px; gap: 10px; }
-        .metric-item {
-            background: #f8f9fa; flex: 1; padding: 12px;
-            border-radius: 15px; text-align: center;
-        }
-    </style>
-    """, unsafe_allow_html=True)
 
-    st.title("🎯 Hệ thống Gợi ý Mua sắm Thông minh")
+    st.title("🎯 Triển khai Mô hình Dự báo Mua sắm")
 
-    # --- 2. LOAD MÔ HÌNH ---
+    st.markdown("---")
+
+
+
+    # 1. XỬ LÝ LOGIC: LOAD MÔ HÌNH ĐÃ HUẤN LUYỆN
+
+    # Đảm bảo bạn đã có thư mục models/ và file trained_model.pkl trong đó
+
     try:
+
         with open('models/file.pkl', 'rb') as f:
+
             model_rules = pickle.load(f)
-        st.sidebar.success("✅ Đã kết nối mô hình!")
+
+        st.sidebar.success("✅ Đã kết nối với mô hình thành công!")
+
     except FileNotFoundError:
-        st.error("❌ Không tìm thấy file 'models/file.pkl'.")
-        st.stop()
 
-    # --- 3. SIDEBAR: Cấu hình & Tìm kiếm ---
-    with st.sidebar:
-        st.markdown("### 🔍 Bộ lọc tìm kiếm")
-        # Danh sách sản phẩm cho phép gõ để tìm kiếm
-        all_products = sorted(df['itemDescription'].unique())
-        selected_item = st.selectbox("🛒 Chọn sản phẩm khách mua:", all_products, help="Gõ tên sản phẩm để tìm nhanh")
-        
-        num_rec = st.number_input("🔢 Số lượng gợi ý tối đa:", 1, 10, 4)
-        conf_threshold = st.slider("🎯 Ngưỡng tin cậy (Confidence):", 0.01, 0.50, 0.05)
-        
-        customer_name = st.text_input("👤 Tên khách hàng:", "Khách hàng thân thiết")
-        predict_btn = st.button("🚀 THỰC HIỆN DỰ BÁO", use_container_width=True)
+        st.sidebar.error("❌ Lỗi: Không tìm thấy file 'models/file.pkl'. Hãy chạy file huấn luyện trước!")
 
-    # --- 4. XỬ LÝ LOGIC & HIỂN THỊ KẾT QUẢ ---
-    if predict_btn:
-        st.markdown(f"### 🚀 Kết quả phân tích cho: **{customer_name}**")
+        st.stop() # Dừng ứng dụng nếu không có mô hình
+
+
+
+    # 2. THIẾT KẾ GIAO DIỆN NHẬP LIỆU (Sử dụng đa dạng Widget)
+
+    st.subheader("📝 Nhập thông tin giao dịch")
+
+    
+
+    with st.container(border=True):
+
+        col1, col2 = st.columns(2)
+
         
-        with st.spinner('AI đang phân tích hành vi...'):
-            # Lọc luật
+
+        with col1:
+
+            # Widget selectbox: Chọn sản phẩm (Danh mục)
+
+            all_products = sorted(df['itemDescription'].unique())
+
+            selected_item = st.selectbox("🛍️ Chọn sản phẩm khách đang cầm trên tay:", all_products)
+
+            
+
+            # Widget number_input: Số lượng gợi ý (Số)
+
+            num_rec = st.number_input("🔢 Số lượng sản phẩm muốn gợi ý thêm:", min_value=1, max_value=5, value=2)
+
+
+
+        with col2:
+
+            # Widget slider: Ngưỡng tin cậy (Xác suất)
+
+            conf_threshold = st.slider("🎯 Ngưỡng tin cậy tối thiểu (Confidence):", 0.01, 0.50, 0.05)
+
+            
+
+            # Widget text_input: Thông tin khách hàng (Văn bản)
+
+            customer_name = st.text_input("👤 Tên khách hàng hoặc Mã thẻ:", "Khách hàng thân thiết")
+
+
+
+    # 3. XỬ LÝ LOGIC DỰ BÁO & TIỀN XỬ LÝ
+
+    st.markdown("### 🚀 Kết quả phân tích hành vi")
+
+    
+
+    if st.button("Thực hiện dự báo ngay"):
+
+        with st.spinner('Mô hình đang tính toán...'):
+
+            # 1. Lọc luật dựa trên sản phẩm đã chọn
+
             input_set = {selected_item}
+
             res = model_rules[model_rules['antecedents'].apply(lambda x: input_set.issubset(x))]
+
             res = res[res['confidence'] >= conf_threshold]
 
-            # Tiền xử lý
+
+
+            # 2. TIỀN XỬ LÝ: Loại bỏ các gợi ý trùng tên sản phẩm (Chỉ giữ lại cái tốt nhất)
+
+            # Chúng ta sẽ biến đổi cột consequents từ frozenset sang string để dễ lọc
+
             res['suggested_name'] = res['consequents'].apply(lambda x: list(x)[0])
-            results = res.sort_values(by='lift', ascending=False).drop_duplicates(subset=['suggested_name']).head(num_rec)
+
+            res = res.sort_values(by='lift', ascending=False).drop_duplicates(subset=['suggested_name'])
+
+            
+
+            # Lấy số lượng theo yêu cầu của người dùng
+
+            results = res.head(num_rec)
+
+
 
             if not results.empty:
-                st.write(f"Dựa trên sản phẩm **{selected_item}**, hệ thống đề xuất:")
+
+                st.write(f"Hệ thống đề xuất cho **{customer_name}**:")
+
                 
-                # Hiển thị dạng Grid 2 cột
-                for i in range(0, len(results), 2):
-                    cols = st.columns(2)
-                    for j in range(2):
-                        if i + j < len(results):
-                            row = results.iloc[i + j]
-                            with cols[j]:
-                                st.markdown(f"""
-                                <div class="result-card">
-                                    <div>
-                                        <span class="badge">#{i + j + 1}</span>
-                                        <span class="food-title">{row['suggested_name'].upper()}</span>
-                                    </div>
-                                    <div class="metric-container">
-                                        <div class="metric-item">
-                                            <p style="margin:0; font-size:10px; color:#666;">ĐỘ TIN CẬY</p>
-                                            <p style="margin:0; font-size:18px; color:#2ecc71; font-weight:bold;">{row['confidence']:.1%}</p>
-                                        </div>
-                                        <div class="metric-item">
-                                            <p style="margin:0; font-size:10px; color:#666;">CHỈ SỐ LIFT</p>
-                                            <p style="margin:0; font-size:18px; color:#3498db; font-weight:bold;">{row['lift']:.2f}</p>
-                                        </div>
-                                    </div>
-                                    <p style="margin-top:15px; font-size:13px; color:#444;">
-                                        💡 <i>Gợi ý:</i> Sắp xếp <b>{row['suggested_name']}</b> gần quầy <b>{selected_item}</b>.
-                                    </p>
-                                </div>
-                                """, unsafe_allow_html=True)
+
+                # 3. HIỂN THỊ (Sử dụng đúng biến index i)
+
+                for i in range(len(results)):
+
+                    # Lấy dữ liệu của hàng hiện tại trong vòng lặp
+
+                    current_row = results.iloc[i]
+
+                    suggested_item = current_row['suggested_name']
+
+                    confidence_val = current_row['confidence']
+
+                    lift_val = current_row['lift']
+
+                    
+
+                    with st.expander(f"🌟 Gợi ý {i+1}: {suggested_item}", expanded=True):
+
+                        col_result_1, col_result_2 = st.columns(2)
+
+                        with col_result_1:
+
+                            st.write(f"📦 Sản phẩm: **{suggested_item}**")
+
+                            st.write(f"🔗 Độ liên quan (Lift): {lift_val:.2f}")
+
+                        with col_result_2:
+
+                            st.metric("Độ tin cậy", f"{confidence_val:.2%}")
+
+                            st.progress(confidence_val)
+
                 st.balloons()
+
             else:
-                st.warning(f"Không tìm thấy gợi ý nào cho '{selected_item}' với ngưỡng tin cậy {conf_threshold:.0%}.")
+
+                st.warning("Không tìm thấy gợi ý phù hợp.")
 
     # 1. CÁC CHỈ SỐ ĐO LƯỜNG ĐẶC THÙ 
     st.subheader("1. Các chỉ số đo lường chất lượng luật")
