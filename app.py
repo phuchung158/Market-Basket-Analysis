@@ -4,6 +4,7 @@ import time
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
+import networkx as nx
 from mlxtend.frequent_patterns import apriori, fpgrowth, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
@@ -253,7 +254,6 @@ elif page == " Đánh giá & Hiệu năng":
         # --- 4. ĐỒ THỊ MẠNG LƯỚI (NETWORK GRAPH) ---
         st.subheader("4. Đồ thị mạng lưới: Liên kết giữa các sản phẩm")
         
-        import networkx as nx
         
         # Chọn top 15-20 luật có Lift cao nhất để đồ thị rõ ràng, không bị rối
         net_rules = rules_eval.nlargest(20, 'lift').copy()
